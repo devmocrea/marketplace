@@ -23,11 +23,11 @@ pub enum DataKey {
     ListingLock(u64),
     AuctionLock(u64),
     IsPaused,
+    PendingAdmin,
 }
 
-const LEDGER_TTL_BUMP: u32 = 432_000;
-const LEDGER_TTL_THRESHOLD: u32 = 144_000;
-const REENTRANCY_LOCK_TTL: u32 = 100;
+pub const LEDGER_TTL_BUMP: u32 = 432_000;
+pub const LEDGER_TTL_THRESHOLD: u32 = 144_000;
 
 // ── Counter helpers ──────────────────────────────────────────
 
@@ -298,6 +298,27 @@ pub fn acquire_auction_lock(env: &Env, auction_id: u64) -> bool {
 pub fn release_auction_lock(env: &Env, auction_id: u64) {
     let key = DataKey::AuctionLock(auction_id);
     env.storage().temporary().remove(&key);
+}
+
+// ── Admin transfer helpers ───────────────────────────────────
+
+pub fn set_pending_admin_storage(env: &Env, pending: &Address) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::PendingAdmin, pending);
+    env.storage().persistent().extend_ttl(
+        &DataKey::PendingAdmin,
+        LEDGER_TTL_THRESHOLD,
+        LEDGER_TTL_BUMP,
+    );
+}
+
+pub fn get_pending_admin_storage(env: &Env) -> Option<Address> {
+    env.storage().persistent().get(&DataKey::PendingAdmin)
+}
+
+pub fn clear_pending_admin_storage(env: &Env) {
+    env.storage().persistent().remove(&DataKey::PendingAdmin);
 }
 
 // ── Pause/Unpause Mechanism ──────────────────────────────────

@@ -15,6 +15,15 @@ const CONTRACT_ID = process.env.MARKETPLACE_CONTRACT_ID || '';
 const LAUNCHPAD_CONTRACT_ID = process.env.LAUNCHPAD_CONTRACT_ID || '';
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL_MS || '5000');
 
+// Stellar RPC enforces a maximum getEvents window of 17,280 ledgers (~24 h).
+const MAX_LEDGER_WINDOW = 17_000;
+
+// Retry back-off base in ms; doubles on each consecutive failure up to MAX_BACKOFF_MS.
+const BASE_BACKOFF_MS = 2_000;
+const MAX_BACKOFF_MS = 60_000;
+
+let consecutiveErrors = 0;
+
 const server = new rpc.Server(RPC_URL);
 
 async function fetchListingFromChain(listingId: bigint): Promise<any | null> {
@@ -397,11 +406,35 @@ export async function startPolling() {
         }
       }
 
-      // 3. Get events from lastLedger + 1
-      const startLedger = syncState.lastLedger + 1;
-      
+      // 3. Resolve start ledger, clamping to the safe RPC window on every poll
+      let networkLatestLedger: number;
+      try {
+        const latestRes = await server.getLatestLedger();
+        networkLatestLedger = latestRes.sequence;
+      } catch (err) {
+        console.error({ msg: 'Failed to fetch latest ledger', err });
+        throw err;
+      }
+
+      const windowFloor = networkLatestLedger - MAX_LEDGER_WINDOW;
+      let startLedger = syncState.lastLedger + 1;
+      if (startLedger < windowFloor) {
+        console.warn({
+          msg: 'startLedger too old — resetting to safe window floor',
+          requested: startLedger,
+          windowFloor,
+          networkLatest: networkLatestLedger,
+        });
+        startLedger = windowFloor;
+        // Persist the reset so future polls don't re-request the stale range.
+        await prisma.syncState.update({
+          where: { id: 1 },
+          data: { lastLedger: windowFloor - 1, ledgerHash: null },
+        });
+      }
+
       const response = await server.getEvents({
-        startLedger: startLedger,
+        startLedger,
         filters: [
           {
             type: 'contract',
@@ -411,8 +444,8 @@ export async function startPolling() {
       });
 
       // 4. Update metrics gauges
-      const networkLatest = response.latestLedger || syncState.lastLedger;
-      
+      const networkLatest = response.latestLedger || networkLatestLedger;
+
       // Update gauges
       latestLedgerProcessedGauge.set(syncState.lastLedger);
       networkLatestLedgerGauge.set(networkLatest);
@@ -495,10 +528,25 @@ export async function startPolling() {
         syncLatencyGauge.set(Math.max(0, networkLatest - updatedState.lastLedger));
       }
 
+      consecutiveErrors = 0;
     } catch (error) {
-      console.error('Error in polling loop:', error);
+      consecutiveErrors += 1;
+      const backoff = Math.min(
+        BASE_BACKOFF_MS * Math.pow(2, consecutiveErrors - 1),
+        MAX_BACKOFF_MS
+      );
+      console.error({
+        msg: 'Error in polling loop',
+        consecutiveErrors,
+        backoffMs: backoff,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      await new Promise((resolve) => setTimeout(resolve, backoff));
+      continue;
     }
 
+    consecutiveErrors = 0;
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
   }
 }

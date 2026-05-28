@@ -36,6 +36,7 @@ vi.mock('@stellar/stellar-sdk', () => ({
     Server: class {
       getEvents() { return Promise.resolve({ events: [] }); }
       getLedgers() { return Promise.resolve({ ledgers: [{ hash: 'correct_network_hash', sequence: 100 }] }); }
+      getLatestLedger() { return Promise.resolve({ sequence: 1000 }); }
       getAccount() { return Promise.resolve({ sequence: '1' }); }
       simulateTransaction() { return Promise.resolve({ result: { retval: {} } }); }
     },

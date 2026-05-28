@@ -1,7 +1,8 @@
 use super::*;
 use crate::types::{ListingStatus, OfferStatus, Recipient};
 use soroban_sdk::{
-    bytes, symbol_short, testutils::Address as _, testutils::Ledger, vec, Address, Env,
+    bytes, symbol_short, testutils::Address as _, testutils::Events as _, testutils::Ledger,
+    vec, Address, Env, IntoVal,
 };
 
 /// Helper — deploy the contract and return (env, client, artist, buyer, contract_id).
@@ -1336,4 +1337,277 @@ fn test_update_listing_success_with_recipients() {
     let listing = client.get_listing(&id);
     assert_eq!(listing.price, 15_000_000);
     assert_eq!(listing.recipients.len(), 2);
+}
+
+// ── transfer_admin / accept_admin tests (Issue #162) ────────
+
+#[test]
+fn test_transfer_admin_two_step_succeeds() {
+    let (env, client, admin, _, _) = setup();
+    let new_admin = Address::generate(&env);
+
+    client.set_admin(&admin);
+    assert_eq!(client.get_admin(), Some(admin.clone()));
+
+    // Step 1: current admin proposes new admin
+    client.transfer_admin(&admin, &new_admin);
+
+    // Admin has NOT changed yet
+    assert_eq!(client.get_admin(), Some(admin.clone()));
+
+    // Step 2: new admin accepts
+    client.accept_admin(&new_admin);
+
+    assert_eq!(client.get_admin(), Some(new_admin.clone()));
+}
+
+#[test]
+#[should_panic]
+fn test_transfer_admin_wrong_caller_panics() {
+    let (env, client, admin, _, _) = setup();
+    let impostor = Address::generate(&env);
+    let new_admin = Address::generate(&env);
+
+    client.set_admin(&admin);
+    // impostor tries to initiate transfer — should panic Unauthorized
+    client.transfer_admin(&impostor, &new_admin);
+}
+
+#[test]
+#[should_panic]
+fn test_accept_admin_wrong_caller_panics() {
+    let (env, client, admin, _, _) = setup();
+    let new_admin = Address::generate(&env);
+    let impostor = Address::generate(&env);
+
+    client.set_admin(&admin);
+    client.transfer_admin(&admin, &new_admin);
+    // A different address tries to accept — should panic Unauthorized
+    client.accept_admin(&impostor);
+}
+
+// ── Event emission tests (Issue #180) ────────────────────────
+
+#[test]
+fn test_buy_artwork_emits_artwork_sold_event() {
+    let (env, client, artist, buyer, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let listing_id = create_test_listing(&env, &client, &artist, &contract_id);
+    client.buy_artwork(&buyer, &listing_id);
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("art_sold").into_val(&env))
+    });
+    assert!(found, "ArtworkSoldEvent was not emitted");
+}
+
+#[test]
+fn test_cancel_listing_emits_listing_cancelled_event() {
+    let (env, client, artist, _, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let listing_id = create_test_listing(&env, &client, &artist, &contract_id);
+    client.cancel_listing(&artist, &listing_id);
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("lst_cncl").into_val(&env))
+    });
+    assert!(found, "ListingCancelledEvent was not emitted");
+}
+
+#[test]
+fn test_update_listing_emits_listing_updated_event() {
+    let (env, client, artist, _, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let listing_id = create_test_listing(&env, &client, &artist, &contract_id);
+    client.update_listing(
+        &artist,
+        &listing_id,
+        &bytes!(&env, 0x52),
+        &20_000_000,
+        &contract_id,
+        &valid_recipients(&env, &artist),
+    );
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("lst_updt").into_val(&env))
+    });
+    assert!(found, "ListingUpdatedEvent was not emitted");
+}
+
+#[test]
+fn test_make_offer_emits_offer_made_event() {
+    let (env, client, artist, buyer, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let listing_id = create_test_listing(&env, &client, &artist, &contract_id);
+    let offer_token = Address::generate(&env);
+    client.make_offer(&buyer, &listing_id, &5_000_000_i128, &offer_token);
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("ofr_made").into_val(&env))
+    });
+    assert!(found, "OfferMadeEvent was not emitted");
+}
+
+#[test]
+fn test_accept_offer_emits_offer_accepted_event() {
+    let (env, client, artist, buyer, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let listing_id = create_test_listing(&env, &client, &artist, &contract_id);
+    let offer_token = Address::generate(&env);
+    let offer_id = client.make_offer(&buyer, &listing_id, &5_000_000_i128, &offer_token);
+    client.accept_offer(&artist, &offer_id);
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("ofr_accp").into_val(&env))
+    });
+    assert!(found, "OfferAcceptedEvent was not emitted");
+}
+
+#[test]
+fn test_reject_offer_emits_offer_rejected_event() {
+    let (env, client, artist, buyer, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let listing_id = create_test_listing(&env, &client, &artist, &contract_id);
+    let offer_token = Address::generate(&env);
+    let offer_id = client.make_offer(&buyer, &listing_id, &5_000_000_i128, &offer_token);
+    client.reject_offer(&artist, &offer_id);
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("ofr_rjct").into_val(&env))
+    });
+    assert!(found, "OfferRejectedEvent was not emitted");
+}
+
+#[test]
+fn test_withdraw_offer_emits_offer_withdrawn_event() {
+    let (env, client, artist, buyer, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let listing_id = create_test_listing(&env, &client, &artist, &contract_id);
+    let offer_token = Address::generate(&env);
+    let offer_id = client.make_offer(&buyer, &listing_id, &5_000_000_i128, &offer_token);
+    client.withdraw_offer(&buyer, &offer_id);
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("ofr_wdrn").into_val(&env))
+    });
+    assert!(found, "OfferWithdrawnEvent was not emitted");
+}
+
+#[test]
+fn test_create_auction_emits_auction_created_event() {
+    let (env, client, artist, _, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    client.create_auction(
+        &artist,
+        &bytes!(&env, 0x516d74657374),
+        &contract_id,
+        &1_000_000_i128,
+        &3600_u64,
+        &0u32,
+        &valid_recipients(&env, &artist),
+    );
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("auc_crtd").into_val(&env))
+    });
+    assert!(found, "AuctionCreatedEvent was not emitted");
+}
+
+#[test]
+fn test_place_bid_emits_bid_placed_event() {
+    let (env, client, artist, bidder, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let auction_id = client.create_auction(
+        &artist,
+        &bytes!(&env, 0x516d74657374),
+        &contract_id,
+        &1_000_000_i128,
+        &3600_u64,
+        &0u32,
+        &valid_recipients(&env, &artist),
+    );
+    client.place_bid(&bidder, &auction_id, &2_000_000_i128);
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("bid_plcd").into_val(&env))
+    });
+    assert!(found, "BidPlacedEvent was not emitted");
+}
+
+#[test]
+fn test_finalize_auction_emits_auction_resolved_event() {
+    let (env, client, artist, bidder, contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&contract_id);
+
+    let auction_id = client.create_auction(
+        &artist,
+        &bytes!(&env, 0x516d74657374),
+        &contract_id,
+        &1_000_000_i128,
+        &3600_u64,
+        &0u32,
+        &valid_recipients(&env, &artist),
+    );
+    client.place_bid(&bidder, &auction_id, &2_000_000_i128);
+
+    // Advance time past end
+    env.ledger().with_mut(|l| {
+        l.timestamp += 7200;
+    });
+
+    client.finalize_auction(&auction_id);
+
+    let events = env.events().all();
+    let found = events.iter().any(|(_, topics, _)| {
+        topics
+            .iter()
+            .any(|t| t == symbol_short!("auc_rslv").into_val(&env))
+    });
+    assert!(found, "AuctionFinalizedEvent was not emitted");
 }
