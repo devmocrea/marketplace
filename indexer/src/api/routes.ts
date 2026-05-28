@@ -12,14 +12,29 @@ const serialize = (obj: any) =>
         typeof value === 'bigint' ? value.toString() : value
     ));
 
-// GET /listings?artist= — all listings created by an artist
+// GET /listings?artist=&status=&minPrice=&maxPrice=&search=&limit=&offset=
 router.get('/listings', async (req: Request, res: Response) => {
-    const { artist, owner, status, limit, offset } = req.query;
+    const { artist, owner, status, limit, offset, minPrice, maxPrice, search } = req.query;
     try {
         const where: any = {};
         if (artist) where.artist = artist as string;
         if (owner) where.owner = owner as string;
         if (status) where.status = status as string;
+
+        if (minPrice || maxPrice) {
+            where.price = {};
+            if (minPrice) where.price.gte = minPrice as string;
+            if (maxPrice) where.price.lte = maxPrice as string;
+        }
+
+        // Search against artist address or metadataCid
+        if (search) {
+            const q = search as string;
+            where.OR = [
+                { artist: { contains: q, mode: 'insensitive' } },
+                { metadataCid: { contains: q, mode: 'insensitive' } },
+            ];
+        }
 
         const take = Math.max(0, Math.min(Number(limit || 0), 1000)) || undefined;
         const skip = Number(offset || 0) || undefined;

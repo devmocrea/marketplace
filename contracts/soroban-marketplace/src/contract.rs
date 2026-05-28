@@ -324,6 +324,18 @@ impl MarketplaceContract {
             panic_with_error!(&env, MarketplaceError::Unauthorized);
         }
 
+        let new_recipients_len = new_recipients.len();
+        if new_recipients_len == 0 || new_recipients_len > 4 {
+            panic_with_error!(&env, MarketplaceError::TooManyRecipients);
+        }
+        let mut total_pct = 0u32;
+        for i in 0..new_recipients_len {
+            total_pct += new_recipients.get(i).unwrap().percentage;
+        }
+        if total_pct != 100 {
+            panic_with_error!(&env, MarketplaceError::InvalidSplit);
+        }
+
         listing.metadata_cid = new_metadata_cid.clone();
         listing.price = new_price;
         listing.token = new_token;
@@ -647,7 +659,7 @@ impl MarketplaceContract {
                 listing_id,
                 offerer: offerer.clone(),
                 amount,
-                token,
+                token: token.clone(),
                 status: OfferStatus::Pending,
                 created_at: env.ledger().sequence(),
             },

@@ -373,11 +373,17 @@ export async function fetchListings(options: {
   status?: string;
   limit?: number;
   offset?: number;
+  minPrice?: string;
+  maxPrice?: string;
+  search?: string;
 } = {}): Promise<{ listings: unknown[]; total?: number }> {
   const params = new URLSearchParams();
   if (options.status) params.set('status', options.status);
   if (options.limit != null) params.set('limit', String(options.limit));
   if (options.offset != null) params.set('offset', String(options.offset));
+  if (options.minPrice) params.set('minPrice', options.minPrice);
+  if (options.maxPrice) params.set('maxPrice', options.maxPrice);
+  if (options.search) params.set('search', options.search);
   const q = params.toString();
   try {
     const raw = await fetchWithRetry<unknown>(`/listings${q ? `?${q}` : ''}`);
