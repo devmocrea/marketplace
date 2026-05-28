@@ -9,6 +9,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getAuction, stroopsToXlm, Auction } from "@/lib/contract";
 import { fetchMetadata, cidToGatewayUrl, ArtworkMetadata } from "@/lib/ipfs";
+import { getReadableErrorMessage } from "@/lib/errors";
 import { useWalletContext } from "@/context/WalletContext";
 import { BiddingPanel } from "@/components/BiddingPanel";
 import {
@@ -20,6 +21,7 @@ import {
   Gavel,
   Shield,
   Percent,
+  RefreshCw,
 } from "lucide-react";
 
 export default function AuctionDetailPage() {
@@ -32,7 +34,6 @@ export default function AuctionDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
   const loadAuction = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -42,7 +43,7 @@ export default function AuctionDetailPage() {
       const m = await fetchMetadata(a.metadata_cid);
       setMetadata(m);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load auction");
+      setError(getReadableErrorMessage(err, "Failed to load auction"));
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +74,13 @@ export default function AuctionDetailPage() {
     return (
       <div className="py-20 text-center">
         <p className="text-red-500">{error ?? "Auction not found"}</p>
+        <button
+          onClick={loadAuction}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-bold text-white hover:bg-brand-600"
+        >
+          <RefreshCw size={14} />
+          Retry
+        </button>
         <button
           onClick={() => router.back()}
           className="mt-4 text-sm text-brand-500 hover:underline"

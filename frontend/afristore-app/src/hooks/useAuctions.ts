@@ -15,6 +15,8 @@ import {
   Auction,
 } from "@/lib/contract";
 import { uploadImageToIPFS, uploadMetadataToIPFS, ArtworkMetadata } from "@/lib/ipfs";
+import { getReadableErrorMessage } from "@/lib/errors";
+import { useTransientErrorToast } from "./useTransientErrorToast";
 
 // ── useAuctions ──────────────────────────────────────────────
 
@@ -25,6 +27,7 @@ export function useAuctions() {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useTransientErrorToast(error);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -33,7 +36,7 @@ export function useAuctions() {
       const all = await getAllAuctions();
       setAuctions(all);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load auctions");
+      setError(getReadableErrorMessage(err, "Failed to load auctions"));
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +58,7 @@ export function useArtistAuctions(artistPublicKey: string | null) {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useTransientErrorToast(error);
 
   const refresh = useCallback(async () => {
     if (!artistPublicKey) return;
@@ -65,9 +69,7 @@ export function useArtistAuctions(artistPublicKey: string | null) {
       const resolved = await Promise.all(ids.map((id) => getAuction(id)));
       setAuctions(resolved);
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load artist auctions"
-      );
+      setError(getReadableErrorMessage(err, "Failed to load artist auctions"));
     } finally {
       setIsLoading(false);
     }
@@ -98,6 +100,7 @@ export function useCreateAuction(creatorPublicKey: string | null) {
   const [isCreating, setIsCreating] = useState(false);
   const [progress, setProgress] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  useTransientErrorToast(error);
 
   const create = useCallback(
     async (input: CreateAuctionInput): Promise<number | null> => {
@@ -142,7 +145,7 @@ export function useCreateAuction(creatorPublicKey: string | null) {
         setProgress("Auction created successfully!");
         return auctionId;
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to create auction");
+        setError(getReadableErrorMessage(err, "Failed to create auction"));
         return null;
       } finally {
         setIsCreating(false);
@@ -159,6 +162,7 @@ export function useCreateAuction(creatorPublicKey: string | null) {
 export function usePlaceBid(bidderPublicKey: string | null) {
   const [isBidding, setIsBidding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useTransientErrorToast(error);
 
   const bid = useCallback(
     async (auctionId: number, amountXlm: number): Promise<boolean> => {
@@ -172,7 +176,7 @@ export function usePlaceBid(bidderPublicKey: string | null) {
         await placeBid(bidderPublicKey, auctionId, amountXlm);
         return true;
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to place bid");
+        setError(getReadableErrorMessage(err, "Failed to place bid"));
         return false;
       } finally {
         setIsBidding(false);
@@ -189,6 +193,7 @@ export function usePlaceBid(bidderPublicKey: string | null) {
 export function useFinalizeAuction(callerPublicKey: string | null) {
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useTransientErrorToast(error);
 
   const finalize = useCallback(
     async (auctionId: number): Promise<boolean> => {
@@ -202,9 +207,7 @@ export function useFinalizeAuction(callerPublicKey: string | null) {
         await finalizeAuction(callerPublicKey, auctionId);
         return true;
       } catch (err: unknown) {
-        setError(
-          err instanceof Error ? err.message : "Failed to finalize auction"
-        );
+        setError(getReadableErrorMessage(err, "Failed to finalize auction"));
         return false;
       } finally {
         setIsFinalizing(false);
