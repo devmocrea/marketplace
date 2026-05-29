@@ -74,12 +74,12 @@ export async function startPolling() {
       let syncState = await prisma.syncState.findUnique({ where: { id: 1 } });
       if (!syncState) {
         syncState = await prisma.syncState.create({
-          data: { id: 1, lastLedger: 0, ledgerHash: null }
+          data: { id: 1, lastLedger: 0, lastLedgerHash: null }
         });
       }
 
       // 2. Validate hash continuity on every poll
-      if (syncState.lastLedger > 0 && syncState.ledgerHash) {
+      if (syncState.lastLedger > 0 && syncState.lastLedgerHash) {
         try {
           const ledgersRes = await server.getLedgers({
             startLedger: syncState.lastLedger,
@@ -87,8 +87,8 @@ export async function startPolling() {
           });
           if (ledgersRes.ledgers && ledgersRes.ledgers.length > 0) {
             const networkLedger = ledgersRes.ledgers[0];
-            if (networkLedger.hash !== syncState.ledgerHash) {
-              console.warn(`Chain re-org detected at ledger ${syncState.lastLedger}! DB hash: ${syncState.ledgerHash}, Network hash: ${networkLedger.hash}`);
+            if (networkLedger.hash !== syncState.lastLedgerHash) {
+              console.warn(`Chain re-org detected at ledger ${syncState.lastLedger}! DB hash: ${syncState.lastLedgerHash}, Network hash: ${networkLedger.hash}`);
               const toLedger = Math.max(0, syncState.lastLedger - 1);
               await revertLedgers(toLedger);
               continue; // Restart the loop immediately with the reverted state
@@ -122,12 +122,9 @@ export async function startPolling() {
         // Persist the reset so future polls don't re-request the stale range.
         await prisma.syncState.update({
           where: { id: 1 },
-          data: { lastLedger: windowFloor - 1, ledgerHash: null },
+          data: { lastLedger: windowFloor - 1, lastLedgerHash: null },
         });
       }
-
-      // 2. Fetch events from lastLedger + 1
-      const startLedger = syncState.lastLedger + 1;
 
       const response = await server.getEvents({
         startLedger,
@@ -139,8 +136,8 @@ export async function startPolling() {
         ],
       });
 
-      // 3. Re-org detection: if the node's latest ledger has fallen behind what
-      //    we already indexed, the node reset or we connected to a different one.
+      // Re-org detection: if the node's latest ledger has fallen behind what
+      // we already indexed, the node reset or we connected to a different one.
       if (syncState.lastLedger > 0 && response.latestLedger < syncState.lastLedger) {
         console.warn(
           `[Reorg] Network latestLedger ${response.latestLedger} < indexed ${syncState.lastLedger}`
@@ -172,17 +169,32 @@ export async function startPolling() {
           if (event.ledger > maxLedger) maxLedger = event.ledger;
         }
 
-        // 4. Persist the new cursor with the network's latest ledger hash
-        await prisma.syncState.update({
+        // Fetch the actual hash for the latest processed ledger
+        let latestHash: string | null = null;
+        try {
+          const ledgersRes = await server.getLedgers({
+            startLedger: maxLedger,
+            pagination: { limit: 1 }
+          });
+          if (ledgersRes.ledgers && ledgersRes.ledgers.length > 0) {
+            latestHash = ledgersRes.ledgers[0].hash;
+          }
+        } catch (err) {
+          console.error(`Failed to fetch hash for ledger ${maxLedger}:`, err);
+        }
+
+        // Persist the new cursor with the ledger hash for continuity validation
+        const updatedState = await prisma.syncState.update({
           where: { id: 1 },
           data: {
             lastLedger: maxLedger,
-            lastLedgerHash: String(response.latestLedger),
+            lastLedgerHash: latestHash,
           },
         });
-        
+
         latestLedgerProcessedGauge.set(updatedState.lastLedger);
-        syncLatencyGauge.set(Math.max(0, networkLatest - updatedState.lastLedger));
+        networkLatestLedgerGauge.set(networkLatestLedger);
+        syncLatencyGauge.set(Math.max(0, networkLatestLedger - updatedState.lastLedger));
       } else if (response.latestLedger && response.latestLedger > syncState.lastLedger) {
         // If there are no events but the network has advanced, we can catch up the syncState
         // so we don't scan empty ranges repeatedly. Fetch the hash for the latest ledger.
@@ -203,12 +215,13 @@ export async function startPolling() {
           where: { id: 1 },
           data: {
             lastLedger: response.latestLedger,
-            ledgerHash: newHash,
+            lastLedgerHash: newHash,
           },
         });
 
         latestLedgerProcessedGauge.set(updatedState.lastLedger);
-        syncLatencyGauge.set(Math.max(0, networkLatest - updatedState.lastLedger));
+        networkLatestLedgerGauge.set(networkLatestLedger);
+        syncLatencyGauge.set(Math.max(0, networkLatestLedger - updatedState.lastLedger));
       }
 
       consecutiveErrors = 0;
@@ -232,6 +245,14 @@ export async function startPolling() {
     consecutiveErrors = 0;
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
   }
+}
+
+async function fetchListingFromChain(_listingId: bigint): Promise<any | null> {
+  return null;
+}
+
+async function fetchAuctionFromChain(_auctionId: bigint): Promise<any | null> {
+  return null;
 }
 
 export async function processEvent(event: any) {

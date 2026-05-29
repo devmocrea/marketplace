@@ -28,6 +28,7 @@ pub enum DataKey {
 
 pub const LEDGER_TTL_BUMP: u32 = 432_000;
 pub const LEDGER_TTL_THRESHOLD: u32 = 144_000;
+pub const REENTRANCY_LOCK_TTL: u32 = 1;
 
 // ── Counter helpers ──────────────────────────────────────────
 

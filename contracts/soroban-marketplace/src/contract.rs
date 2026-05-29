@@ -229,7 +229,7 @@ impl MarketplaceContract {
         }
         artist.require_auth();
         if Self::is_artist_revoked(env.clone(), artist.clone()) {
-            panic_with_error!(&env, MarketplaceError::Unauthorized);
+            panic_with_error!(&env, MarketplaceError::ArtistRevoked);
         }
         if metadata_cid.is_empty() {
             panic_with_error!(&env, MarketplaceError::InvalidCid);

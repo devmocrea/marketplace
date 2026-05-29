@@ -1,6 +1,18 @@
 import { Router, Request, Response } from 'express';
+import axios from 'axios';
 import prisma from '../db.js';
 import redis from '../redis.js';
+import { cacheMiddleware } from './cache-middleware.js';
+import { strictRateLimiter } from './rate-limit-middleware.js';
+
+// SSE clients registry
+const sseClients: Response[] = [];
+export function emitSSEEvent(event: any) {
+    const data = `data: ${JSON.stringify(event, (_k, v) => typeof v === 'bigint' ? v.toString() : v)}\n\n`;
+    for (const client of sseClients) {
+        try { client.write(data); } catch { /* ignore closed connections */ }
+    }
+}
 
 const router = Router();
 
