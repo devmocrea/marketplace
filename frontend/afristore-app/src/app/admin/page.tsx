@@ -121,6 +121,7 @@ export default function AdminPage() {
                         </h1>
                     </div>
                     <button
+                        type="button"
                         onClick={() => { refreshStats(); refreshTokens(); }}
                         className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-midnight-900 shadow-sm transition-all hover:bg-brand-50 hover:shadow-md border border-brand-100"
                     >
@@ -182,6 +183,7 @@ export default function AdminPage() {
                                 />
                             </div>
                             <button
+                                type="button"
                                 onClick={handleSearchArtist}
                                 className="rounded-xl bg-midnight-900 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-midnight-800"
                             >
@@ -221,6 +223,7 @@ export default function AdminPage() {
                                     </div>
 
                                     <button
+                                        type="button"
                                         disabled={isModerating}
                                         onClick={handleToggleArtistStatus}
                                         className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold transition-all ${searchResult.isRevoked
@@ -304,6 +307,7 @@ export default function AdminPage() {
                                     className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-mint-500 focus:outline-none focus:ring-1 focus:ring-mint-500"
                                 />
                                 <button
+                                    type="button"
                                     disabled={isManagingTokens || !newTokenAddress}
                                     onClick={handleWhitelistToken}
                                     className="flex items-center gap-2 rounded-xl bg-secondary-dark px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-secondary disabled:opacity-50 shadow-md shadow-secondary/10"
@@ -345,6 +349,9 @@ export default function AdminPage() {
                                     <p className="mt-1 text-xs text-gray-500 font-mono">{token.slice(0, 16)}...</p>
                                     
                                     <button
+                                        type="button"
+                                        aria-label="Remove token"
+                                        title="Remove token"
                                         onClick={() => handleRemoveToken(token)}
                                         className="absolute right-4 top-4 rounded-lg p-2 text-gray-300 hover:bg-red-50 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
                                     >

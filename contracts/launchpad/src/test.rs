@@ -2,7 +2,7 @@ extern crate std;
 
 use soroban_sdk::{testutils::Address as _, testutils::Ledger as _, Address, BytesN, Env, String};
 
-use crate::{CollectionKind, Launchpad, LaunchpadClient};
+use crate::{CollectionKind, Error, Launchpad, LaunchpadClient};
 
 fn jump_ledger(env: &Env, delta: u32) {
     env.ledger().with_mut(|li| {
@@ -22,13 +22,13 @@ fn wasm_bytes(name: &str) -> std::vec::Vec<u8> {
         .unwrap()
         .to_path_buf();
     let path = target_dir
-        .join("wasm32-unknown-unknown")
+        .join("wasm32v1-none")
         .join("release")
         .join(std::format!("{name}.wasm"));
 
     std::fs::read(&path).unwrap_or_else(|_| {
         panic!(
-            "missing wasm at {}. build it first with: cargo build --target wasm32-unknown-unknown --release -p collection-nft-erc1155 -p lazy-mint-erc721 -p collection-nft-erc721 -p lazy-mint-erc1155",
+            "missing wasm at {}. build it first with: cargo build --target wasm32v1-none --release -p collection-nft-erc1155 -p lazy-mint-erc721 -p collection-nft-erc721 -p lazy-mint-erc1155",
             path.display()
         )
     })
@@ -647,4 +647,147 @@ fn front_runner_cannot_grief_lazy_1155() {
 
     assert_ne!(addr_alice, addr_bob);
     assert_eq!(client.collection_count(), 2u64);
+}
+
+// ── Initialisation error tests ──────────────────────────────────
+
+#[test]
+fn initialize_twice_fails() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let launchpad_id = env.register(Launchpad, ());
+    let client = LaunchpadClient::new(&env, &launchpad_id);
+
+    let admin = Address::generate(&env);
+    let fee_receiver = Address::generate(&env);
+    client.initialize(&admin, &fee_receiver, &0u32);
+
+    let result = client.try_initialize(&admin, &fee_receiver, &0u32);
+    assert_eq!(result, Err(Ok(Error::AlreadyInitialized)));
+}
+
+#[test]
+fn deploy_without_wasm_hashes_fails() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let launchpad_id = env.register(Launchpad, ());
+    let client = LaunchpadClient::new(&env, &launchpad_id);
+
+    let admin = Address::generate(&env);
+    let fee_receiver = Address::generate(&env);
+    let creator = Address::generate(&env);
+    client.initialize(&admin, &fee_receiver, &0u32);
+
+    let salt = BytesN::from_array(&env, &[0x99u8; 32]);
+    let currency = Address::generate(&env);
+    let royalty_receiver = Address::generate(&env);
+
+    let result = client.try_deploy_normal_721(
+        &creator,
+        &currency,
+        &String::from_str(&env, "No Wasm"),
+        &String::from_str(&env, "NOWASM"),
+        &100u64,
+        &500u32,
+        &royalty_receiver,
+        &salt,
+    );
+    assert_eq!(result, Err(Ok(Error::WasmHashNotSet)));
+}
+
+// ── Admin function tests ────────────────────────────────────────
+
+#[test]
+fn admin_calls_before_init_fail() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let launchpad_id = env.register(Launchpad, ());
+    let client = LaunchpadClient::new(&env, &launchpad_id);
+
+    let new_admin = Address::generate(&env);
+    let result = client.try_transfer_admin(&new_admin);
+    assert_eq!(result, Err(Ok(Error::NotInitialized)));
+
+    let result = client.try_update_platform_fee(&Address::generate(&env), &100u32);
+    assert_eq!(result, Err(Ok(Error::NotInitialized)));
+}
+
+#[test]
+fn transfer_admin_success() {
+    let env = Env::default();
+    env.ledger().with_mut(|li| li.sequence_number = 1);
+    let (client, _admin, _fee_receiver, _creator) = setup_launchpad(&env);
+
+    let new_admin = Address::generate(&env);
+    client.transfer_admin(&new_admin);
+
+    assert_eq!(client.admin(), new_admin);
+}
+
+#[test]
+fn update_platform_fee_success() {
+    let env = Env::default();
+    env.ledger().with_mut(|li| li.sequence_number = 1);
+    let (client, _admin, _fee_receiver, _creator) = setup_launchpad(&env);
+
+    let new_receiver = Address::generate(&env);
+    let new_fee_bps = 250u32;
+    client.update_platform_fee(&new_receiver, &new_fee_bps);
+
+    let (receiver, bps) = client.platform_fee();
+    assert_eq!(receiver, new_receiver);
+    assert_eq!(bps, new_fee_bps);
+}
+
+// ── View function tests ─────────────────────────────────────────
+
+#[test]
+fn view_functions_return_correct_values() {
+    let env = Env::default();
+    env.ledger().with_mut(|li| li.sequence_number = 1);
+    let (client, admin, fee_receiver, _creator) = setup_launchpad(&env);
+
+    assert_eq!(client.admin(), admin);
+
+    let (receiver, bps) = client.platform_fee();
+    assert_eq!(receiver, fee_receiver);
+    assert_eq!(bps, 0u32);
+}
+
+// ── Collections view tests ──────────────────────────────────────
+
+#[test]
+fn collections_by_creator_returns_correct_collections() {
+    let env = Env::default();
+    env.ledger().with_mut(|li| li.sequence_number = 1);
+    let (client, _admin, _fee_receiver, creator) = setup_launchpad(&env);
+
+    let other = Address::generate(&env);
+    let salt = BytesN::from_array(&env, &[0x55u8; 32]);
+    let currency = Address::generate(&env);
+    let royalty_receiver = Address::generate(&env);
+
+    client.deploy_normal_721(
+        &creator,
+        &currency,
+        &String::from_str(&env, "Creator Coll"),
+        &String::from_str(&env, "CRC"),
+        &100u64,
+        &500u32,
+        &royalty_receiver,
+        &salt,
+    );
+
+    let creator_colls = client.collections_by_creator(&creator);
+    assert_eq!(creator_colls.len(), 1);
+    assert!(matches!(
+        creator_colls.get(0).unwrap().kind,
+        CollectionKind::Normal721
+    ));
+
+    let other_colls = client.collections_by_creator(&other);
+    assert_eq!(other_colls.len(), 0);
 }

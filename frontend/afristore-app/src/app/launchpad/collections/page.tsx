@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { useLaunchpadCollections } from "@/hooks/useLaunchpad";
 import { CollectionKind } from "@/lib/launchpad";
@@ -37,12 +38,12 @@ export default function CollectionsDirectoryPage() {
                   Discover and mint from the latest verified collections deployed on the Afristore Launchpad.
                 </p>
               </div>
-              <a
+              <Link
                 href="/launchpad/create"
                 className="flex items-center gap-2 rounded-2xl bg-brand-500 px-6 py-4 text-lg font-bold text-white hover:bg-brand-600 shadow-xl shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Rocket size={20} /> Create Yours
-              </a>
+              </Link>
             </div>
           </header>
 
@@ -61,6 +62,7 @@ export default function CollectionsDirectoryPage() {
             <div className="flex gap-2">
               <select
                 value={kindFilter}
+                aria-label="Filter by collection type"
                 onChange={(e) => setKindFilter(e.target.value as any)}
                 className="appearance-none pl-4 pr-10 py-4 rounded-2xl border border-gray-200 bg-white focus:border-brand-500 focus:outline-none transition-all shadow-sm font-inter font-semibold text-gray-700"
               >
@@ -105,12 +107,12 @@ export default function CollectionsDirectoryPage() {
                     }`}>
                       {c.kind}
                     </span>
-                    <a
+                    <Link
                       href={`/launchpad/collections/${c.address}`}
                       className="text-gray-400 hover:text-brand-500 transition-colors"
                     >
                       <ExternalLink size={20} />
-                    </a>
+                    </Link>
                   </div>
                   <h3 className="text-xl font-display font-bold text-gray-900 mb-2 truncate" title={c.address}>
                     {c.address.slice(0, 8)}...{c.address.slice(-8)}
@@ -123,12 +125,12 @@ export default function CollectionsDirectoryPage() {
                       </span>
                     </div>
                   </div>
-                  <a
+                  <Link
                     href={`/launchpad/collections/${c.address}`}
                     className="mt-6 block w-full text-center py-3 rounded-2xl bg-gray-50 text-gray-900 font-bold hover:bg-brand-500 hover:text-white transition-all"
                   >
                     View Details
-                  </a>
+                  </Link>
                 </div>
               ))}
             </div>

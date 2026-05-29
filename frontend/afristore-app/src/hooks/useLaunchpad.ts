@@ -13,6 +13,7 @@ import {
   CollectionMetadata,
   CollectionKind,
 } from "@/lib/launchpad";
+import { assertSupportedTokenAddress } from "@/lib/token-support";
 
 // ── useLaunchpadCollections ───────────────────────────────────
 
@@ -125,6 +126,7 @@ export function useDeployCollection(creatorPublicKey: string | null) {
       setError(null);
 
       try {
+        const token = await assertSupportedTokenAddress(input.currencyAddress, "collection");
         const salt = Buffer.alloc(32); // Simple salt for now, can be randomized
         window.crypto.getRandomValues(salt);
 
@@ -134,7 +136,7 @@ export function useDeployCollection(creatorPublicKey: string | null) {
           case "Normal721":
             address = await deployNormal721(
               creatorPublicKey,
-              input.currencyAddress,
+              token.address,
               input.name,
               input.symbol || "",
               input.maxSupply || 0,
@@ -146,7 +148,7 @@ export function useDeployCollection(creatorPublicKey: string | null) {
           case "Normal1155":
             address = await deployNormal1155(
               creatorPublicKey,
-              input.currencyAddress,
+              token.address,
               input.name,
               input.royaltyBps,
               input.royaltyReceiver,
@@ -157,7 +159,7 @@ export function useDeployCollection(creatorPublicKey: string | null) {
             if (!input.creatorPubkeyBytes) throw new Error("Missing creator pubkey bytes");
             address = await deployLazy721(
               creatorPublicKey,
-              input.currencyAddress,
+              token.address,
               input.creatorPubkeyBytes,
               input.name,
               input.symbol || "",
@@ -171,7 +173,7 @@ export function useDeployCollection(creatorPublicKey: string | null) {
             if (!input.creatorPubkeyBytes) throw new Error("Missing creator pubkey bytes");
             address = await deployLazy1155(
               creatorPublicKey,
-              input.currencyAddress,
+              token.address,
               input.creatorPubkeyBytes,
               input.name,
               input.royaltyBps,

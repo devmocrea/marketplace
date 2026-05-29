@@ -8,7 +8,8 @@
 #![allow(clippy::too_many_arguments, deprecated)]
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String, Vec,
+    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String,
+    Symbol, Vec,
 };
 
 const TTL_THRESHOLD: u32 = 50_000;
@@ -183,9 +184,11 @@ impl NormalNFT1155 {
                 .persistent()
                 .extend_ttl(&supply_key, TTL_THRESHOLD, TTL_BUMP);
 
-            // Emit event
-            env.events()
-                .publish((symbol_short!("mint"), to.clone()), (token_id, amount));
+            // Emit TransferSingle event (ERC-1155 standard)
+            env.events().publish(
+                (Symbol::new(&env, "TransferSingle"), to.clone(), to.clone()),
+                (token_id, amount),
+            );
         }
 
         // Update NextTokenId once at the end if needed
@@ -226,7 +229,7 @@ impl NormalNFT1155 {
         if !Self::_is_approved_for_all(&env, &operator, &from) {
             return Err(Error::NotApproved);
         }
-        Self::_transfer(&env, &from, &to, token_id, amount)
+        Self::_transfer_with_operator(&env, &operator, &from, &to, token_id, amount)
     }
 
     /// Batch transfer — mirrors `safeBatchTransferFrom`.
@@ -249,6 +252,18 @@ impl NormalNFT1155 {
         if token_ids.len() != amounts.len() {
             return Err(Error::LengthMismatch);
         }
+
+        // Emit TransferBatch event (ERC-1155 standard)
+        env.events().publish(
+            (
+                Symbol::new(&env, "TransferBatch"),
+                spender.clone(),
+                from.clone(),
+                to.clone(),
+            ),
+            (token_ids.clone(), amounts.clone()),
+        );
+
         for i in 0..token_ids.len() {
             let id = token_ids.get(i).unwrap();
             let amount = amounts.get(i).unwrap();
@@ -319,8 +334,15 @@ impl NormalNFT1155 {
             TTL_BUMP,
         );
 
-        env.events()
-            .publish((symbol_short!("burn"), from), (token_id, amount));
+        // Emit TransferSingle event for burn (to zero address)
+        env.events().publish(
+            (
+                Symbol::new(&env, "TransferSingle"),
+                from.clone(),
+                from.clone(),
+            ),
+            (token_id, amount),
+        );
         Ok(())
     }
 
@@ -475,8 +497,65 @@ impl NormalNFT1155 {
             TTL_BUMP,
         );
 
-        env.events()
-            .publish((symbol_short!("mint"), to.clone()), (token_id, amount));
+        // Emit TransferSingle event for mint (from zero address)
+        env.events().publish(
+            (Symbol::new(env, "TransferSingle"), to.clone(), to.clone()),
+            (token_id, amount),
+        );
+    }
+
+    fn _transfer_with_operator(
+        env: &Env,
+        operator: &Address,
+        from: &Address,
+        to: &Address,
+        token_id: u64,
+        amount: u128,
+    ) -> Result<(), Error> {
+        let from_bal: u128 = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Balance(from.clone(), token_id))
+            .unwrap_or(0);
+        if from_bal < amount {
+            return Err(Error::InsufficientBalance);
+        }
+
+        env.storage().persistent().set(
+            &DataKey::Balance(from.clone(), token_id),
+            &(from_bal - amount),
+        );
+        env.storage().persistent().extend_ttl(
+            &DataKey::Balance(from.clone(), token_id),
+            TTL_THRESHOLD,
+            TTL_BUMP,
+        );
+
+        let to_bal: u128 = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Balance(to.clone(), token_id))
+            .unwrap_or(0);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(to.clone(), token_id), &(to_bal + amount));
+        env.storage().persistent().extend_ttl(
+            &DataKey::Balance(to.clone(), token_id),
+            50_000,
+            100_000,
+        );
+
+        // Emit TransferSingle event with operator (ERC-1155 standard)
+        env.events().publish(
+            (
+                Symbol::new(env, "TransferSingle"),
+                operator.clone(),
+                from.clone(),
+                to.clone(),
+            ),
+            (token_id, amount),
+        );
+        Ok(())
     }
 
     fn _transfer(
@@ -519,9 +598,14 @@ impl NormalNFT1155 {
             100_000,
         );
 
+        // Emit TransferSingle event (ERC-1155 standard) - operator is from for direct transfers
         env.events().publish(
-            (symbol_short!("transfer"), from.clone()),
-            (to.clone(), token_id, amount),
+            (
+                Symbol::new(env, "TransferSingle"),
+                from.clone(),
+                to.clone(),
+            ),
+            (token_id, amount),
         );
         Ok(())
     }

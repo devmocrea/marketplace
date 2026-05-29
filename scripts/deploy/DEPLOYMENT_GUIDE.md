@@ -7,7 +7,7 @@ Install the required tools:
 ```bash
 # 1. Rust + wasm32 target
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 
 # 2. Stellar CLI (≥ 0.22)
 cargo install --locked stellar-cli --features opt
@@ -40,7 +40,7 @@ the credentials to `scripts/deploy/.env.deploy`.
 ```
 
 The script:
-1. Compiles the Rust contract to WASM (`cargo build --target wasm32-unknown-unknown --release`)
+1. Compiles the Rust contract to WASM (`cargo build --target wasm32v1-none --release`)
 2. Optimises the WASM with `stellar contract optimize`
 3. Uploads the WASM blob to the Stellar network (`stellar contract install`)
 4. Deploys an instance of the contract (`stellar contract deploy`)

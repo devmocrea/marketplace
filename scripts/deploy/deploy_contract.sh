@@ -11,8 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ENV_FILE="$SCRIPT_DIR/.env.deploy"
 CONTRACT_DIR="$REPO_ROOT/contracts/soroban-marketplace"
-WASM_LOCAL="$CONTRACT_DIR/target/wasm32-unknown-unknown/release/soroban_marketplace.wasm"
-WASM_WORKSPACE="$REPO_ROOT/target/wasm32-unknown-unknown/release/soroban_marketplace.wasm"
+WASM_LOCAL="$CONTRACT_DIR/target/wasm32v1-none/release/soroban_marketplace.wasm"
+WASM_WORKSPACE="$REPO_ROOT/target/wasm32v1-none/release/soroban_marketplace.wasm"
 WASM="$WASM_WORKSPACE"
 FRONTEND_ENV="$REPO_ROOT/frontend/afristore-app/.env.local"
 
@@ -40,7 +40,7 @@ source "$ENV_FILE"
 echo ""
 echo "Step 1/4  Building contract WASM..."
 cd "$CONTRACT_DIR"
-cargo build --target wasm32-unknown-unknown --release 2>&1
+cargo build --target wasm32v1-none --release 2>&1
 
 if [[ -f "$WASM_WORKSPACE" ]]; then
   WASM="$WASM_WORKSPACE"

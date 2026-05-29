@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: require('path').resolve(__dirname, '../../'),
   reactStrictMode: true,
   images: {
     remotePatterns: [
@@ -21,16 +22,34 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config) => {
-    // Required for @stellar/stellar-sdk in browser
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-    };
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Stub out Node-only modules that @stellar/stellar-sdk pulls in
+      // transitively (sodium-native, libsodium-wrappers, etc.).
+      // Without these stubs, the client bundle emits critical warnings and
+      // includes dead code that inflates the bundle size.
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        // Standard Node builtins
+        fs: false,
+        net: false,
+        tls: false,
+        // Stellar SDK native crypto modules — not available in the browser;
+        // the SDK falls back to its wasm/js implementation automatically.
+        "sodium-native": false,
+        "libsodium-wrappers": false,
+        // Other optional native deps pulled by stellar-base / stellar-sdk
+        crypto: false,
+      };
+    }
     return config;
   },
+  // Suppress the expected "Can't resolve 'sodium-native'" critical warnings
+  // that Next.js surfaces from @stellar/stellar-sdk's optional native crypto.
+  // These are intentional — the browser bundle uses the wasm fallback instead.
+  //
+  // Note: Next 15 exposes `ignoreDuringBuilds` under experimental — once stable
+  // we can replace the webpack fallback stubs with a cleaner filterWarnings rule.
 };
 
 module.exports = nextConfig;

@@ -27,6 +27,7 @@ pub enum MarketplaceError {
     ListingSold = 20,
     ListingCancelled = 21,
     ReentrancyGuard = 22,
+    ContractPaused = 23,
 }
 
 #[contracttype]

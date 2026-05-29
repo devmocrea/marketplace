@@ -9,9 +9,9 @@ jest.mock("../lib/contract", () => ({
 }));
 
 describe("Launchpad Client", () => {
-  const mockCreator = "GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN";
-  const mockCurrency = "GCNP7433B5WDTZ4TKK7LAK5HHL77C2G66ZQUWJIDLNCQY62A3L5Y6K7V";
-  const mockRoyaltyReceiver = "GBVVRX6LJL6IULXID3UVDG6XN76SSTC57YV7S2TDCB3B367VY2Y7I76G";
+  const mockCreator = "GBFUNHEQOVN35LFEKP7SZXFYJPMJ3WLXLX4PQZGBK737NTLRHOKVES3F";
+  const mockCurrency = "CD3FSSR667WES5YVVUZZ22LFRQ2RB5NGJGGQEGSPP4OXWLJJV5EFHIIR";
+  const mockRoyaltyReceiver = "GBFUNHEQOVN35LFEKP7SZXFYJPMJ3WLXLX4PQZGBK737NTLRHOKVES3F";
   const mockSalt = Buffer.alloc(32, 1);
 
   beforeEach(() => {
@@ -53,7 +53,7 @@ describe("Launchpad Client", () => {
     // Check royaltyBps
     expect(scValToNative(args[5])).toBe(500);
     // Check salt
-    expect(scValToNative(args[7])).toEqual(mockSalt);
+    expect(scValToNative(args[7])).toEqual(Uint8Array.from(mockSalt));
   });
 
   it("handles errors from invokeContract", async () => {

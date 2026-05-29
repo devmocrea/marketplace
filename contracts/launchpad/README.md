@@ -45,7 +45,7 @@ cargo install --locked stellar-cli --features opt
 # Build all contracts
 cd soroban-nft-launchpad
 stellar contract build
-# Outputs to: target/wasm32-unknown-unknown/release/*.wasm
+# Outputs to: target/wasm32v1-none/release/*.wasm
 ```
 
 ---
@@ -58,16 +58,16 @@ stellar contract build
 NETWORK="--network testnet --source my-account"
 
 HASH_N721=$(stellar contract upload --wasm \
-  target/wasm32-unknown-unknown/release/normal_721.wasm $NETWORK)
+  target/wasm32v1-none/release/normal_721.wasm $NETWORK)
 
 HASH_N1155=$(stellar contract upload --wasm \
-  target/wasm32-unknown-unknown/release/normal_1155.wasm $NETWORK)
+  target/wasm32v1-none/release/normal_1155.wasm $NETWORK)
 
 HASH_L721=$(stellar contract upload --wasm \
-  target/wasm32-unknown-unknown/release/lazy_721.wasm $NETWORK)
+  target/wasm32v1-none/release/lazy_721.wasm $NETWORK)
 
 HASH_L1155=$(stellar contract upload --wasm \
-  target/wasm32-unknown-unknown/release/lazy_1155.wasm $NETWORK)
+  target/wasm32v1-none/release/lazy_1155.wasm $NETWORK)
 
 echo "Normal721  hash: $HASH_N721"
 echo "Normal1155 hash: $HASH_N1155"
@@ -79,7 +79,7 @@ echo "Lazy1155   hash: $HASH_L1155"
 
 ```bash
 LAUNCHPAD=$(stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/launchpad.wasm $NETWORK)
+  --wasm target/wasm32v1-none/release/launchpad.wasm $NETWORK)
 
 stellar contract invoke --id $LAUNCHPAD $NETWORK \
   --fn initialize -- \

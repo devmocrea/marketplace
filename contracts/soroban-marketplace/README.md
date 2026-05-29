@@ -62,7 +62,7 @@ All entries are extended to a ~30-day TTL on every read and write.
 ```bash
 # Rust toolchain
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 
 # Stellar CLI
 cargo install --locked stellar-cli --features opt
@@ -73,10 +73,10 @@ cargo install --locked stellar-cli --features opt
 ```bash
 make build
 # or directly:
-cargo build --target wasm32-unknown-unknown --release
+cargo build --target wasm32v1-none --release
 ```
 
-Output: `target/wasm32-unknown-unknown/release/soroban_marketplace.wasm`
+Output: `target/wasm32v1-none/release/soroban_marketplace.wasm`
 
 ## Test
 

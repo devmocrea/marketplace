@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useWalletContext } from "@/context/WalletContext";
 import { FeaturedListings } from "@/components/FeaturedListings";
 import {
@@ -69,6 +70,7 @@ function useInView(threshold = 0.2) {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const { isConnected, connect, isConnecting } = useWalletContext();
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroLoaded, setHeroLoaded] = useState(false);
@@ -162,6 +164,7 @@ export default function HomePage() {
             <button
               onClick={() => {
                 if (!isConnected) connect();
+                else router.push('/explore');
               }}
               disabled={isConnecting}
               className="group relative flex items-center gap-3 rounded-xl bg-brand-500 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 hover:shadow-xl hover:shadow-brand-500/40 disabled:opacity-60 transition-all duration-300 animate-pulse-glow"
@@ -524,6 +527,7 @@ function FinalCTASection({
   connect: () => void;
   isConnecting: boolean;
 }) {
+  const router = useRouter();
   const ctaView = useInView(0.3);
 
   return (
@@ -558,6 +562,7 @@ function FinalCTASection({
             <button
               onClick={() => {
                 if (!isConnected) connect();
+                else router.push('/explore');
               }}
               disabled={isConnecting}
               className="group flex items-center gap-3 rounded-xl bg-brand-500 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-brand-500/25 hover:bg-brand-600 hover:shadow-xl hover:shadow-brand-500/35 disabled:opacity-60 transition-all duration-300"

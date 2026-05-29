@@ -15,7 +15,7 @@ Freighter Wallet ──► Next.js Frontend ──► Soroban Contract (Stellar)
 ## Monorepo Structure
 
 ```
-afristore/
+afristore/git checkout -b feature/admin-dashboard-ui
 ├── contracts/
 │   └── soroban-marketplace/          # Rust Soroban smart contract
 │       ├── src/
@@ -60,7 +60,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000)
 
 ## Current Testnet Deployment (2026-04-09)
 

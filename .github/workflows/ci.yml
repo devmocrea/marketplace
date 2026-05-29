@@ -23,7 +23,7 @@ jobs:
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-unknown-unknown
+          targets: wasm32v1-none
           components: rustfmt, clippy
 
       - name: Rust Cache
@@ -38,7 +38,7 @@ jobs:
 
       - name: Build WASM Target
         # Ensures that the contracts actually compile to Soroban's required WASM architecture
-        run: cargo build --target wasm32-unknown-unknown --release
+        run: cargo build --target wasm32v1-none --release
 
       - name: Run Unit Tests
         run: cargo test
@@ -66,6 +66,10 @@ jobs:
 
       - name: Install Indexer Dependencies
         run: npm install
+        working-directory: indexer
+
+      - name: Build Indexer
+        run: npm run build
         working-directory: indexer
 
       - name: Run Indexer Tests
@@ -98,6 +102,7 @@ jobs:
         working-directory: frontend/afristore-app
 
       - name: Run Frontend Lint
+        # Runs ESLint directly (see package.json "lint" script); not `next lint`.
         run: npm run lint --if-present
         working-directory: frontend/afristore-app
 

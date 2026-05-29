@@ -1,13 +1,13 @@
 SHELL := /bin/bash
 CONTRACT_NAME := soroban_marketplace
-WASM_PATH := target/wasm32-unknown-unknown/release/$(CONTRACT_NAME).wasm
-OPTIMISED_WASM := target/wasm32-unknown-unknown/release/$(CONTRACT_NAME).optimized.wasm
+WASM_PATH := target/wasm32v1-none/release/$(CONTRACT_NAME).wasm
+OPTIMISED_WASM := target/wasm32v1-none/release/$(CONTRACT_NAME).optimized.wasm
 
 .PHONY: build test clean fmt check optimize
 
 ## Build the contract WASM
 build:
-	cargo build --target wasm32-unknown-unknown --release
+	cargo build --target wasm32v1-none --release
 
 ## Run all unit tests
 test:

@@ -6,14 +6,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { useCreateListing, useUpdateListing, UpdateListingInput, CreateListingInput } from "@/hooks/useMarketplace";
+import { useCreateListing, useUpdateListing } from "@/hooks/useMarketplace";
 import { useWalletContext } from "@/context/WalletContext";
 import { Upload, CheckCircle, Loader2, Save } from "lucide-react";
 import { GuardButton } from "./WalletGuard";
 import { ArtworkMetadata, fetchMetadata, cidToGatewayUrl } from "@/lib/ipfs";
 import { Listing, stroopsToXlm } from "@/lib/contract";
-
-import { SUPPORTED_TOKENS, DEFAULT_TOKEN } from "@/config/tokens";
+import { DEFAULT_TOKEN } from "@/config/tokens";
+import { useSupportedTokens } from "@/hooks/useSupportedTokens";
+import { ensureTokenOption, getDefaultSupportedToken } from "@/lib/token-support";
+import posthog from "posthog-js";
 
 export const ART_CATEGORIES = [
   "Painting",
@@ -34,6 +36,7 @@ interface ListingFormProps {
 export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) {
   const isEdit = !!listing;
   const { publicKey } = useWalletContext();
+  const { tokens: availableTokens } = useSupportedTokens();
   
   const { create, isCreating, progress: createProgress, error: createError } = useCreateListing(publicKey);
   const { update, isUpdating, progress: updateProgress, error: updateError } = useUpdateListing(publicKey);
@@ -54,8 +57,13 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
   const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
   
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const selectedToken = SUPPORTED_TOKENS.find(t => t.address === form.tokenAddress) || DEFAULT_TOKEN;
+  const tokenOptions = listing
+    ? ensureTokenOption(availableTokens, form.tokenAddress)
+    : availableTokens;
+  const hasTokenOptions = tokenOptions.length > 0;
+  const defaultToken = getDefaultSupportedToken(tokenOptions);
+  const selectedToken =
+    tokenOptions.find((token) => token.address === form.tokenAddress) || defaultToken;
 
   // Load existing data if in edit mode
   useEffect(() => {
@@ -79,6 +87,19 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
     }
   }, [listing]);
 
+  useEffect(() => {
+    if (isEdit || tokenOptions.length === 0) {
+      return;
+    }
+
+    if (!tokenOptions.some((token) => token.address === form.tokenAddress)) {
+      setForm((current) => ({
+        ...current,
+        tokenAddress: getDefaultSupportedToken(tokenOptions).address,
+      }));
+    }
+  }, [form.tokenAddress, isEdit, tokenOptions]);
+
   const handleFile = (file: File) => {
     setSelectedFile(file);
     const url = URL.createObjectURL(file);
@@ -97,6 +118,7 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
     if (isEdit && listing && currentMetadata) {
       const success = await update({
         listingId: listing.listing_id,
+        originalTokenAddress: listing.token,
         ...form,
         imageFile: selectedFile || undefined,
         currentMetadata,
@@ -110,6 +132,7 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
       const id = await create({ ...form, imageFile: selectedFile });
       if (id !== null) {
         setSuccessId(id);
+        posthog.capture("Listing Created", { listing_id: id, price_xlm: form.price });
         onSuccess?.(id);
       }
     }
@@ -140,7 +163,15 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
                     setSuccessId(null);
                     setPreview(null);
                     setSelectedFile(null);
-                    setForm({ title: "", description: "", artistName: "", year: new Date().getFullYear().toString(), category: ART_CATEGORIES[0], price: 10, tokenAddress: DEFAULT_TOKEN.address });
+                    setForm({
+                      title: "",
+                      description: "",
+                      artistName: "",
+                      year: new Date().getFullYear().toString(),
+                      category: ART_CATEGORIES[0],
+                      price: 10,
+                      tokenAddress: defaultToken.address,
+                    });
                 }}
                 className="flex-1 rounded-2xl bg-brand-500 px-6 py-4 text-lg font-bold text-white hover:bg-brand-600 shadow-lg shadow-brand-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
@@ -310,15 +341,20 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
                 </label>
                 <select
                     required
+                    disabled={!hasTokenOptions || isEdit}
                     value={form.tokenAddress}
                     onChange={(e) => setForm({ ...form, tokenAddress: e.target.value })}
                     className="w-full appearance-none rounded-2xl border border-gray-200 bg-gray-50/50 px-5 py-4 text-base focus:border-brand-500 focus:bg-white focus:outline-none transition-all shadow-sm font-inter"
                 >
-                    {SUPPORTED_TOKENS.map((token) => (
+                    {hasTokenOptions ? (
+                      tokenOptions.map((token) => (
                         <option key={token.address} value={token.address}>
-                            {token.name} ({token.symbol})
+                          {token.name} ({token.symbol})
                         </option>
-                    ))}
+                      ))
+                    ) : (
+                      <option value="">No supported tokens available</option>
+                    )}
                 </select>
                 </div>
             </div>
@@ -350,7 +386,7 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
                 )}
                 <GuardButton
                     type="submit"
-                    disabled={isLoading || (!isEdit && !selectedFile)}
+                    disabled={isLoading || !hasTokenOptions || (!isEdit && !selectedFile)}
                     actionName={isEdit ? "to update your listing" : "to list your artwork"}
                     className="flex-[2] flex items-center justify-center gap-3 rounded-2xl bg-brand-500 py-5 text-xl font-bold text-white shadow-2xl shadow-brand-500/30 hover:bg-brand-600 hover:scale-[1.01] transition-all active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
                 >

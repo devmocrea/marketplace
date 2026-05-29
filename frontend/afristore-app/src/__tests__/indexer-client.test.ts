@@ -1,91 +1,131 @@
 /**
- * Tests for the indexer API client functions in lib/indexer.ts.
- * These are currently stub implementations that resolve with fixed data,
- * so the tests verify the returned shape/types rather than live API calls.
+ * Indexer client: tests use mocked HTTP (axios) and assert mapping + guards.
  */
+import axios from "axios";
 import {
   getWalletActivity,
   getRoyaltyStats,
   getListingActivity,
-  ActivityEvent,
-} from '@/lib/indexer';
+  getCollections,
+} from "@/lib/indexer";
 
-describe('getWalletActivity', () => {
-  it('resolves to an array of ActivityEvent objects', async () => {
-    const result = await getWalletActivity('GPUBLIC_KEY_123');
-    expect(Array.isArray(result)).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
+jest.mock("axios");
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+describe("getWalletActivity", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedAxios.get.mockReset();
   });
 
-  it('each event has the required fields', async () => {
-    const events = await getWalletActivity('GPUBLIC_KEY_123');
-    for (const ev of events) {
-      expect(typeof ev.id).toBe('string');
-      expect(['PURCHASE', 'LISTED', 'CANCELLED', 'SALE', 'ROYALTY']).toContain(ev.type);
-      expect(typeof ev.listing_id).toBe('number');
-      expect(typeof ev.price).toBe('string');
-      expect(typeof ev.timestamp).toBe('number');
-      expect(typeof ev.from).toBe('string');
-      expect(typeof ev.to).toBe('string');
-      expect(typeof ev.tx_hash).toBe('string');
-    }
+  it("maps ARTWORK_SOLD to PURCHASE for the buyer address", async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          eventType: "ARTWORK_SOLD",
+          actor: "GARTIST1",
+          listingId: "42",
+          data: { artist: "GARTIST1", buyer: "GUSER01", price: 5000000 },
+          ledgerSequence: 1000,
+          ledgerTimestamp: "2020-01-01T00:00:00.000Z",
+        },
+      ],
+      status: 200,
+    });
+
+    const result = await getWalletActivity("GUSER01");
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("PURCHASE");
+    expect(result[0].listing_id).toBe(42);
   });
 
-  it('returns events relevant to the provided public key', async () => {
-    const pk = 'GPUBLIC_KEY_UNIQUE';
-    const events = await getWalletActivity(pk);
-    const relevant = events.filter((ev) => ev.from === pk || ev.to === pk);
-    expect(relevant.length).toBeGreaterThan(0);
-  });
-});
-
-describe('getRoyaltyStats', () => {
-  it('resolves with totalEarned, payoutCount and lastPayout', async () => {
-    const stats = await getRoyaltyStats('GPUBLIC_KEY_123');
-    expect(typeof stats.totalEarned).toBe('string');
-    expect(typeof stats.payoutCount).toBe('number');
-    expect(typeof stats.lastPayout).toBe('number');
-  });
-
-  it('totalEarned is a valid numeric string', async () => {
-    const stats = await getRoyaltyStats('GPUBLIC_KEY_123');
-    expect(Number.isNaN(parseFloat(stats.totalEarned))).toBe(false);
-  });
-
-  it('payoutCount is a non-negative integer', async () => {
-    const stats = await getRoyaltyStats('GPUBLIC_KEY_123');
-    expect(stats.payoutCount).toBeGreaterThanOrEqual(0);
-    expect(Number.isInteger(stats.payoutCount)).toBe(true);
+  it("returns an empty list when the indexer is unreachable (graceful)", async () => {
+    mockedAxios.get.mockRejectedValue(new Error("Network error"));
+    const result = await getWalletActivity("GUSER01");
+    expect(result).toEqual([]);
   });
 });
 
-describe('getListingActivity', () => {
-  it('resolves to an array of ActivityEvent objects for the given listingId', async () => {
-    const listingId = 42;
-    const events = await getListingActivity(listingId);
-    expect(Array.isArray(events)).toBe(true);
-    expect(events.length).toBeGreaterThan(0);
+describe("getRoyaltyStats", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedAxios.get.mockReset();
   });
 
-  it('all returned events reference the queried listing_id', async () => {
-    const listingId = 7;
-    const events = await getListingActivity(listingId);
-    for (const ev of events) {
-      expect(ev.listing_id).toBe(listingId);
-    }
+  it("returns parsed body when the shape is valid", async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        totalEarned: "12.5",
+        payoutCount: 3,
+        lastPayout: 1700000000000,
+      },
+      status: 200,
+    });
+    const stats = await getRoyaltyStats("GARTIST1");
+    expect(stats.totalEarned).toBe("12.5");
+    expect(stats.payoutCount).toBe(3);
   });
 
-  it('event IDs include the listing_id in their identifier', async () => {
-    const listingId = 55;
-    const events = await getListingActivity(listingId);
-    for (const ev of events) {
-      expect(ev.id).toContain(String(listingId));
-    }
+  it("falls back to zero stats on invalid payload", async () => {
+    mockedAxios.get.mockResolvedValue({ data: { oops: true }, status: 200 });
+    const stats = await getRoyaltyStats("GARTIST1");
+    expect(stats.payoutCount).toBe(0);
+    expect(stats.totalEarned).toBe("0");
+  });
+});
+
+describe("getListingActivity", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedAxios.get.mockReset();
   });
 
-  it('first event is a LISTED type (creation), last is a PURCHASE', async () => {
-    const events = await getListingActivity(1);
-    expect(events[0].type).toBe('LISTED');
-    expect(events[events.length - 1].type).toBe('PURCHASE');
+  it("returns mapped listing history events", async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          eventType: "LISTING_CREATED",
+          actor: "GART",
+          listingId: "5",
+          data: { artist: "GART", price: 1000 },
+          ledgerSequence: 10,
+          ledgerTimestamp: "2020-01-01T00:00:00.000Z",
+        },
+      ],
+      status: 200,
+    });
+    const ev = await getListingActivity(5);
+    expect(ev[0].listing_id).toBe(5);
+    expect(ev[0].type).toBe("LISTED");
+  });
+});
+
+describe("getCollections", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedAxios.get.mockReset();
+  });
+
+  it("returns typed collection rows and total", async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          contractAddress: "CCONTRACT",
+          kind: "normal_721",
+          creator: "GART",
+          name: "A",
+          symbol: "A",
+          deployedAtLedger: 1,
+        },
+        { not: "a collection row" },
+      ],
+      status: 200,
+    });
+    const { collections, total } = await getCollections();
+    expect(total).toBe(1);
+    expect(collections[0].kind).toBe("normal_721");
   });
 });

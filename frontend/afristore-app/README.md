@@ -1,4 +1,41 @@
+## Known Issues & Warnings
+
+### Stellar SDK Critical Dependency Warning
+
+When running `npm run build`, you may see warnings like:
+
+```
+Critical dependency: require function is used in a way in which dependencies cannot be statically extracted
+Import trace for requested module:
+...sodium-native/index.js
+...@stellar/stellar-base/lib/signing.js
+...@stellar/stellar-sdk/lib/index.js
+```
+
+This is due to the `@stellar/stellar-sdk` package pulling in Node.js dependencies (like `sodium-native`) even when used in client-side code. The app uses dynamic imports and only loads what is needed, but the warning may still appear. This does not affect runtime behavior in the browser, but keep this in mind if you see these warnings during build.
+
+For more info, see: https://github.com/stellar/js-stellar-sdk/issues/922
+
+
 # afristore-app
+
+## Monorepo & Lockfile Strategy
+
+This project is part of a monorepo. The **frontend app uses npm as the package manager** and maintains a single lockfile at `frontend/afristore-app/package-lock.json`. Do not use yarn or pnpm for this workspace. Always run install/build/lint commands from the `frontend/afristore-app` directory.
+
+**Workspace root for Next.js output tracing is set to the monorepo root.**
+
+### Install & Build Directory
+
+All frontend commands (install, build, lint, test) should be run from:
+
+```
+cd frontend/afristore-app
+```
+
+This ensures consistent dependency resolution and avoids workspace root ambiguity.
+
+---
 
 Next.js 14 frontend for the Afristore decentralized African art marketplace.
 
@@ -6,7 +43,7 @@ Next.js 14 frontend for the Afristore decentralized African art marketplace.
 
 | Layer | Library |
 |---|---|
-| Framework | Next.js 14 (App Router) |
+| Framework | Next.js 15 (App Router) |
 | Styling | Tailwind CSS |
 | Blockchain | `@stellar/stellar-sdk` |
 | Wallet | `@stellar/freighter-api` |
@@ -85,8 +122,11 @@ cp .env.example .env.local
 | `NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE` | Stellar network passphrase |
 | `PINATA_JWT` | Pinata API JWT (server-side only; never expose publicly) |
 | `NEXT_PUBLIC_PINATA_GATEWAY` | Pinata IPFS gateway URL |
+| `NEXT_PUBLIC_INDEXER_URL` | Base URL of the Afristore indexer API (e.g. `http://localhost:4000` in dev) |
 
 ## Install & Run
+
+Use **Node.js 20.x** (same as CI) for reliable parity with the ESLint 8 + `eslint-config-next` toolchain. Node **18+** is the minimum supported for this app.
 
 ```bash
 npm install
@@ -102,7 +142,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Start dev server with hot-reload |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
-| `npm run lint` | ESLint |
+| `npm run lint` | ESLint (CLI; `next lint` is not used) |
 | `npm run type-check` | TypeScript check (no emit) |
 
 ## Wallet Setup
