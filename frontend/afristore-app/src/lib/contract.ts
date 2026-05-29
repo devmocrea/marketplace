@@ -20,6 +20,13 @@ import { config } from "./config";
 import { signWithFreighter } from "./freighter";
 import { mapSorobanErrorMessage } from "./errors";
 import {
+  isE2eMockChain,
+  e2eMockCreateListing,
+  e2eMockBuyArtwork,
+  getE2eMockListings,
+  registerE2eMockListingsOnWindow,
+} from "./e2e-chain-mock";
+import {
   DEFAULT_TOKEN,
   TokenConfig,
   getNativeTokenConfig,
@@ -235,6 +242,17 @@ export async function createListing(
   royaltyBps: number = 0,
   recipients: Array<{ address: string; percentage: number }> = []
 ): Promise<number> {
+  if (isE2eMockChain()) {
+    if (typeof window !== "undefined") registerE2eMockListingsOnWindow();
+    return e2eMockCreateListing(
+      artistPublicKey,
+      metadataCid,
+      price,
+      tokenAddress,
+      royaltyBps
+    );
+  }
+
   const priceStroops = BigInt(Math.round(price * 10_000_000));
   const selectedToken = resolveConfiguredToken(tokenAddress);
 
@@ -267,6 +285,11 @@ export async function buyArtwork(
   buyerPublicKey: string,
   listingId: number
 ): Promise<boolean> {
+  if (isE2eMockChain()) {
+    if (typeof window !== "undefined") registerE2eMockListingsOnWindow();
+    return e2eMockBuyArtwork(buyerPublicKey, listingId);
+  }
+
   const args: xdr.ScVal[] = [
     new Address(buyerPublicKey).toScVal(),
     nativeToScVal(BigInt(listingId), { type: "u64" }),
@@ -356,6 +379,11 @@ export async function getArtistListings(artistPublicKey: string): Promise<number
  * getAllListings — Fetch every listing from ID 1 → total in parallel.
  */
 export async function getAllListings(): Promise<Listing[]> {
+  if (isE2eMockChain()) {
+    if (typeof window !== "undefined") registerE2eMockListingsOnWindow();
+    return getE2eMockListings();
+  }
+
   const total = await getTotalListings();
   const ids = Array.from({ length: total }, (_, i) => i + 1);
   const results = await Promise.all(

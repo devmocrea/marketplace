@@ -1,9 +1,20 @@
 import { Page } from '@playwright/test';
 
 export const TEST_PUBLIC_KEY = 'GA7QYNF7SOWQ3GLR2ZGMH7TQZ2N2LHCP5JH5C4H4K2PJ7X2OV4YH4L7I';
+/** Second wallet for purchase E2E (seller must differ from buyer). */
+export const BUYER_PUBLIC_KEY =
+  'GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN7';
 export const TEST_NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015';
 export const WRONG_NETWORK_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
 
+const KEY_STORAGE = 'e2e_wallet_public_key';
+const PASSPHRASE_STORAGE = 'e2e_network_passphrase';
+const INSTALLED_STORAGE = 'e2e_freighter_installed';
+
+/**
+ * Seeds sessionStorage before navigation so useE2eWallet connects without Freighter.
+ * Requires NEXT_PUBLIC_E2E_MOCK_CHAIN=true on the dev server.
+ */
 export async function mockFreighter(page: Page, overrides?: {
   publicKey?: string;
   networkPassphrase?: string;
@@ -11,29 +22,35 @@ export async function mockFreighter(page: Page, overrides?: {
   const publicKey = overrides?.publicKey ?? TEST_PUBLIC_KEY;
   const networkPassphrase = overrides?.networkPassphrase ?? TEST_NETWORK_PASSPHRASE;
 
-  await page.addInitScript(() => {
-    const mock = {
-      isConnected: () => Promise.resolve({ isConnected: true }),
-      setAllowed: () => Promise.resolve({ isAllowed: true }),
-      getPublicKey: () => Promise.resolve(publicKey),
-      getNetwork: () => Promise.resolve({ network: 'testnet' }),
-      getNetworkDetails: () => Promise.resolve({ networkPassphrase }),
-      signTransaction: (txXdr: string, _opts?: any) =>
-        Promise.resolve({ signedTxXdr: txXdr }),
-      signBlob: (blob: string, _opts?: any) =>
-        Promise.resolve({ signedBlob: blob }),
-    };
-
-    (window as any).freighter = mock;
-    (window as any).starlight = mock;
-  });
+  await page.addInitScript(
+    ({ pk, passphrase, keyStorage, passphraseStorage, installedStorage }) => {
+      sessionStorage.setItem(installedStorage, 'true');
+      sessionStorage.setItem(keyStorage, pk);
+      sessionStorage.setItem(passphraseStorage, passphrase);
+    },
+    {
+      pk: publicKey,
+      passphrase: networkPassphrase,
+      keyStorage: KEY_STORAGE,
+      passphraseStorage: PASSPHRASE_STORAGE,
+      installedStorage: INSTALLED_STORAGE,
+    }
+  );
 }
 
 export async function mockFreighterNotInstalled(page: Page) {
-  await page.addInitScript(() => {
-    (window as any).freighter = undefined;
-    (window as any).starlight = undefined;
-  });
+  await page.addInitScript(
+    ({ keyStorage, passphraseStorage, installedStorage }) => {
+      sessionStorage.setItem(installedStorage, 'false');
+      sessionStorage.removeItem(keyStorage);
+      sessionStorage.removeItem(passphraseStorage);
+    },
+    {
+      keyStorage: KEY_STORAGE,
+      passphraseStorage: PASSPHRASE_STORAGE,
+      installedStorage: INSTALLED_STORAGE,
+    }
+  );
 }
 
 export async function mockFreighterWrongNetwork(page: Page) {
