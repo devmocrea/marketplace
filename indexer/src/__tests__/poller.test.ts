@@ -20,6 +20,17 @@ const mockPrisma = vi.hoisted(() => ({
     upsert: vi.fn().mockResolvedValue({}),
     update: vi.fn().mockResolvedValue({}),
   },
+  auction: {
+    upsert: vi.fn().mockResolvedValue({}),
+    update: vi.fn().mockResolvedValue({}),
+  },
+  offer: {
+    upsert: vi.fn().mockResolvedValue({}),
+    update: vi.fn().mockResolvedValue({}),
+  },
+  collection: {
+    upsert: vi.fn().mockResolvedValue({}),
+  },
   syncState: {
     findUnique: vi.fn(),
     create: vi.fn().mockResolvedValue({ id: 1, lastLedger: 0 }),

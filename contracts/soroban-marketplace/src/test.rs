@@ -872,6 +872,8 @@ fn test_royalty_secondary_sale() {
     listing.artist = buyer.clone();
     listing.status = ListingStatus::Active;
     listing.owner = None;
+    // Update recipients to the new seller (buyer) so payout goes to them
+    listing.recipients = vec![&env, Recipient { address: buyer.clone(), percentage: 100 }];
     // Save the relisted artwork using contract context
     env.as_contract(&contract_id, || {
         crate::storage::save_listing(&env, &listing);
@@ -1816,6 +1818,7 @@ fn test_buy_artwork_pays_royalty_on_secondary_sale() {
     listing.artist = buyer.clone();
     listing.status = ListingStatus::Active;
     listing.owner = None;
+    listing.recipients = vec![&env, Recipient { address: buyer.clone(), percentage: 100 }];
     env.as_contract(&contract_id, || {
         crate::storage::save_listing(&env, &listing);
     });

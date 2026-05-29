@@ -791,3 +791,142 @@ fn collections_by_creator_returns_correct_collections() {
     let other_colls = client.collections_by_creator(&other);
     assert_eq!(other_colls.len(), 0);
 }
+
+
+// ── Issue #201: Invalid ED25519 signature and expired voucher tests ───────────
+//
+// Deploy a lazy_721 via the launchpad, then verify the deployed collection
+// rejects invalid ED25519 signatures and expired vouchers.
+//
+// We mirror the MintVoucher / Error types from lazy_mint_erc721 using the same
+// #[contracttype] / #[contracterror] macros so the XDR encoding matches.
+
+use soroban_sdk::{contracterror, contractclient, contracttype};
+
+#[contracttype]
+#[derive(Clone)]
+pub struct MintVoucher {
+    pub token_id: u64,
+    pub price: i128,
+    pub currency: Address,
+    pub uri: String,
+    pub uri_hash: BytesN<32>,
+    pub valid_until: u64,
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum LazyError {
+    AlreadyInitialized = 1,
+    NotInitialized = 2,
+    NotOwner = 3,
+    NotApproved = 4,
+    TokenNotFound = 5,
+    MaxSupplyReached = 6,
+    VoucherExpired = 7,
+    VoucherAlreadyUsed = 8,
+    NotCreator = 9,
+    InvalidSignature = 10,
+}
+
+#[contractclient(name = "Lazy721Client")]
+pub trait ILazy721 {
+    fn redeem(
+        env: Env,
+        buyer: Address,
+        voucher: MintVoucher,
+        signature: BytesN<64>,
+    ) -> Result<u64, LazyError>;
+}
+
+/// After deploying a lazy_721 via the launchpad, redeeming with an invalid
+/// ED25519 signature must be rejected by the deployed collection contract.
+#[test]
+fn deployed_lazy_721_rejects_invalid_ed25519_signature() {
+    let env = Env::default();
+    env.ledger().with_mut(|li| li.sequence_number = 1);
+    let (client, _admin, _fee_receiver, creator) = setup_launchpad(&env);
+
+    let creator_pubkey = BytesN::from_array(&env, &[1u8; 32]);
+    let royalty_receiver = Address::generate(&env);
+    let currency = Address::generate(&env);
+    let salt = BytesN::from_array(&env, &[0xA1u8; 32]);
+
+    let collection_addr = client.deploy_lazy_721(
+        &creator,
+        &currency,
+        &creator_pubkey,
+        &String::from_str(&env, "Sig Test 721"),
+        &String::from_str(&env, "ST7"),
+        &1_000u64,
+        &0u32,
+        &royalty_receiver,
+        &salt,
+    );
+
+    let lazy_client = Lazy721Client::new(&env, &collection_addr);
+    let buyer = Address::generate(&env);
+    let voucher = MintVoucher {
+        token_id: 1,
+        price: 0,
+        currency: Address::generate(&env),
+        uri: String::from_str(&env, "ipfs://test"),
+        uri_hash: BytesN::from_array(&env, &[0u8; 32]),
+        valid_until: 0,
+    };
+
+    // All-zeros is not a valid ed25519 signature — host will abort
+    let bad_sig = BytesN::from_array(&env, &[0u8; 64]);
+    let result = lazy_client.try_redeem(&buyer, &voucher, &bad_sig);
+    assert!(result.is_err(), "invalid signature must be rejected");
+}
+
+/// After deploying a lazy_721 via the launchpad, redeeming an expired voucher
+/// (valid_until < current ledger sequence) must return VoucherExpired.
+#[test]
+fn deployed_lazy_721_rejects_expired_voucher() {
+    let env = Env::default();
+    env.ledger().with_mut(|li| li.sequence_number = 1);
+    let (client, _admin, _fee_receiver, creator) = setup_launchpad(&env);
+
+    let creator_pubkey = BytesN::from_array(&env, &[2u8; 32]);
+    let royalty_receiver = Address::generate(&env);
+    let currency = Address::generate(&env);
+    let salt = BytesN::from_array(&env, &[0xA2u8; 32]);
+
+    let collection_addr = client.deploy_lazy_721(
+        &creator,
+        &currency,
+        &creator_pubkey,
+        &String::from_str(&env, "Expiry Test 721"),
+        &String::from_str(&env, "ET7"),
+        &1_000u64,
+        &0u32,
+        &royalty_receiver,
+        &salt,
+    );
+
+    let lazy_client = Lazy721Client::new(&env, &collection_addr);
+
+    // Advance ledger past the voucher's valid_until
+    env.ledger().with_mut(|li| li.sequence_number = 200);
+
+    let buyer = Address::generate(&env);
+    let voucher = MintVoucher {
+        token_id: 1,
+        price: 0,
+        currency: Address::generate(&env),
+        uri: String::from_str(&env, "ipfs://expired"),
+        uri_hash: BytesN::from_array(&env, &[0u8; 32]),
+        valid_until: 50, // expired: 50 < 200
+    };
+
+    let sig = BytesN::from_array(&env, &[0u8; 64]);
+    let result = lazy_client.try_redeem(&buyer, &voucher, &sig);
+    assert_eq!(
+        result,
+        Err(Ok(LazyError::VoucherExpired)),
+        "expired voucher must return VoucherExpired"
+    );
+}
