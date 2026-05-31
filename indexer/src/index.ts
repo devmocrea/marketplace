@@ -20,7 +20,12 @@ const limiter = rateLimit({
     message: { error: 'Too many requests, please try again after a minute.' },
 });
 
-app.use(cors());
+app.use(cors({
+    origin: process.env.NODE_ENV === 'production'
+        ? (process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean)
+        : true,
+    credentials: true,
+}));
 app.use(express.json());
 app.use(limiter);
 
