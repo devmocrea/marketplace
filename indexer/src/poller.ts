@@ -416,8 +416,8 @@ export async function processEvent(event: any, tx?: any, skipInsert = false) {
       break;
     }
 
-    case 'LISTING_UPDATED':
-      await db.listing.update({
+    case 'LISTING_UPDATED': {
+      const { count } = await db.listing.updateMany({
         where: { listingId },
         data: {
           price: data.new_price,
@@ -425,10 +425,12 @@ export async function processEvent(event: any, tx?: any, skipInsert = false) {
           updatedAtLedger: ledgerSequence,
         },
       });
+      if (count === 0) console.warn(`LISTING_UPDATED: listing ${listingId} not found at ledger ${ledgerSequence}`);
       break;
+    }
 
-    case 'ARTWORK_SOLD':
-      await db.listing.update({
+    case 'ARTWORK_SOLD': {
+      const { count } = await db.listing.updateMany({
         where: { listingId },
         data: {
           status: 'Sold',
@@ -436,17 +438,21 @@ export async function processEvent(event: any, tx?: any, skipInsert = false) {
           updatedAtLedger: ledgerSequence,
         },
       });
+      if (count === 0) console.error(`ARTWORK_SOLD: listing ${listingId} not found — sale not recorded at ledger ${ledgerSequence}`);
       break;
+    }
 
-    case 'LISTING_CANCELLED':
-      await db.listing.update({
+    case 'LISTING_CANCELLED': {
+      const { count } = await db.listing.updateMany({
         where: { listingId },
         data: {
           status: 'Cancelled',
           updatedAtLedger: ledgerSequence,
         },
       });
+      if (count === 0) console.warn(`LISTING_CANCELLED: listing ${listingId} not found at ledger ${ledgerSequence}`);
       break;
+    }
     
     case 'AUCTION_CREATED': {
       let chainAuction = await fetchAuctionFromChain(listingId);
@@ -507,7 +513,7 @@ export async function processEvent(event: any, tx?: any, skipInsert = false) {
     }
 
     case 'BID_PLACED': {
-      await db.auction.update({
+      const { count } = await db.auction.updateMany({
         where: { auctionId: listingId },
         data: {
           highestBid: data.bid_amount,
@@ -515,11 +521,12 @@ export async function processEvent(event: any, tx?: any, skipInsert = false) {
           updatedAtLedger: ledgerSequence,
         }
       });
+      if (count === 0) console.warn(`BID_PLACED: auction ${listingId} not found at ledger ${ledgerSequence}`);
       break;
     }
 
     case 'AUCTION_RESOLVED': {
-      await db.auction.update({
+      const { count } = await db.auction.updateMany({
         where: { auctionId: listingId },
         data: {
           status: 'Finalized',
@@ -528,6 +535,7 @@ export async function processEvent(event: any, tx?: any, skipInsert = false) {
           updatedAtLedger: ledgerSequence,
         }
       });
+      if (count === 0) console.error(`AUCTION_RESOLVED: auction ${listingId} not found — resolution not recorded at ledger ${ledgerSequence}`);
       break;
     }
 
@@ -564,19 +572,15 @@ export async function processEvent(event: any, tx?: any, skipInsert = false) {
           updatedAtLedger: ledgerSequence,
         }
       });
-      try {
-        await db.listing.update({
-          where: { listingId: BigInt(data.listing_id) },
-          data: {
-            status: 'Sold',
-            owner: data.offerer,
-            updatedAtLedger: ledgerSequence,
-          }
-        });
-      } catch (error) {
-        console.error(`Failed to update listing ${data.listing_id} after offer ${data.offer_id} accepted:`, error);
-        throw error;
-      }
+      const { count: listingCount } = await db.listing.updateMany({
+        where: { listingId: BigInt(data.listing_id) },
+        data: {
+          status: 'Sold',
+          owner: data.offerer,
+          updatedAtLedger: ledgerSequence,
+        }
+      });
+      if (listingCount === 0) console.error(`OFFER_ACCEPTED: listing ${data.listing_id} not found — offer ${data.offer_id} accepted but listing not updated at ledger ${ledgerSequence}`);
       break;
     }
 
