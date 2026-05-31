@@ -340,3 +340,96 @@ describe('GET /wallets/:address/royalty-stats', () => {
     );
   });
 });
+
+// ── Issue #236 — verify cacheMiddleware, strictRateLimiter, axios are importable
+// and the routes that depend on them respond correctly ─────────────────────────
+
+// GET /activity/recent — uses cacheMiddleware(30)
+describe('GET /activity/recent — cacheMiddleware wired correctly', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('responds 200 and returns events array (cacheMiddleware import resolves)', async () => {
+    const events = [
+      { id: 1, listingId: BigInt(1), eventType: 'LISTING_CREATED', actor: 'GA', data: {}, ledgerSequence: 10 },
+    ];
+    mockPrisma.marketplaceEvent.findMany.mockResolvedValue(events);
+
+    const res = await request(app).get('/activity/recent');
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    // Confirms the route handler ran — cacheMiddleware did not throw ReferenceError
+    expect(mockPrisma.marketplaceEvent.findMany).toHaveBeenCalled();
+  });
+});
+
+// GET /collections — uses cacheMiddleware(60)
+describe('GET /collections — cacheMiddleware wired correctly', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('responds 200 (cacheMiddleware import resolves)', async () => {
+    mockPrisma.collection.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/collections');
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.collection.findMany).toHaveBeenCalled();
+  });
+});
+
+// GET /wallets/:address/activity — uses strictRateLimiter
+describe('GET /wallets/:address/activity — strictRateLimiter wired correctly', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('responds 200 (strictRateLimiter import resolves)', async () => {
+    mockPrisma.marketplaceEvent.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/wallets/GTEST/activity');
+
+    expect(res.status).toBe(200);
+  });
+});
+
+// GET /wallets/:address/royalty-stats — uses strictRateLimiter
+describe('GET /wallets/:address/royalty-stats — strictRateLimiter wired correctly', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('responds 200 (strictRateLimiter import resolves)', async () => {
+    mockPrisma.listing.findMany.mockResolvedValue([]);
+
+    const res = await request(app).get('/wallets/GTEST/royalty-stats');
+
+    expect(res.status).toBe(200);
+    expect(res.body.payoutCount).toBe(0);
+  });
+});
+
+// GET /listings/:id — uses axios to fetch IPFS metadata
+describe('GET /listings/:id — axios import resolves', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('responds 200 with metadata null when no CID is set (axios import resolves)', async () => {
+    const listing = {
+      listingId: BigInt(1),
+      artist: 'GABC',
+      owner: null,
+      price: '1000',
+      currency: 'XLM',
+      metadataCid: null,
+      token: '',
+      status: 'Active',
+      royaltyBps: 0,
+      createdAtLedger: 1,
+      updatedAtLedger: 1,
+    };
+    // findUnique is not in the mock by default — add it inline
+    (mockPrisma.listing as any).findUnique = vi.fn().mockResolvedValue(listing);
+
+    const res = await request(app).get('/listings/1');
+
+    expect(res.status).toBe(200);
+    expect(res.body.metadata).toBeNull();
+    // Confirms the route ran without a ReferenceError on axios
+    expect((mockPrisma.listing as any).findUnique).toHaveBeenCalled();
+  });
+});

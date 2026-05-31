@@ -135,10 +135,12 @@ export async function startPolling() {
         });
         startLedger = windowFloor;
         // Persist the reset so future polls don't re-request the stale range.
-        await prisma.syncState.update({
+        const resetState = await prisma.syncState.update({
           where: { id: 1 },
           data: { lastLedger: windowFloor - 1, lastLedgerHash: null },
         });
+
+        syncState = resetState;
       }
 
       const response = await server.getEvents({

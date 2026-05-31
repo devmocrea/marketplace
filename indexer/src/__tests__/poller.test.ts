@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ── Mock Prisma ───────────────────────────────────────────────────────────────
 
@@ -74,8 +74,7 @@ vi.mock('@stellar/stellar-sdk', () => ({
   },
 }));
 
-import { processEvent, revertLedgers, validateHashContinuity } from '../poller';
-import { processEvent, revertLedgers, startPolling } from '../poller';
+import { processEvent, revertLedgers, validateHashContinuity, startPolling } from '../poller';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -452,11 +451,12 @@ describe('startPolling', () => {
   });
 });
 
-// ── SyncState upsert (issue #243) ─────────────────────────────────────────────
+// ── window floor reset (issue #233) ──────────────────────────────────────────
 
-describe('startPolling — SyncState initialisation uses upsert', () => {
+describe('startPolling — window floor reset', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Ensure CONTRACT_ID is set so startPolling doesn't throw immediately
     process.env.MARKETPLACE_CONTRACT_ID = 'CTEST';
   });
 
@@ -472,6 +472,38 @@ describe('startPolling — SyncState initialisation uses upsert', () => {
       lastLedgerHash: null,
     });
 
+  it('fetches events from windowFloor when syncState.lastLedger is too old', async () => {
+    // Network is at ledger 20000; MAX_LEDGER_WINDOW is 17000 → windowFloor = 3000
+    // syncState.lastLedger = 100 → startLedger would be 101, which is < 3000
+    const staleLastLedger = 100;
+    const networkLatest = 20_000;
+    const expectedWindowFloor = networkLatest - 17_000; // 3000
+
+    mockPrisma.syncState.findUnique.mockResolvedValue({
+      id: 1,
+      lastLedger: staleLastLedger,
+      lastLedgerHash: null,
+    });
+    // After the window-floor persist, update returns the new state
+    mockPrisma.syncState.update.mockResolvedValue({
+      id: 1,
+      lastLedger: expectedWindowFloor - 1,
+      lastLedgerHash: null,
+    });
+
+    // Override the SDK Server mock to return a stale-range scenario and then
+    // stop the loop by throwing after the first getEvents call.
+    const { rpc } = await import('@stellar/stellar-sdk');
+    const serverInstance = new rpc.Server('');
+    vi.spyOn(serverInstance, 'getLatestLedger').mockResolvedValue({ sequence: networkLatest } as any);
+    vi.spyOn(serverInstance, 'getEvents').mockImplementationOnce(({ startLedger }: any) => {
+      // Verify the poller used windowFloor, not the stale lastLedger + 1
+      expect(startLedger).toBe(expectedWindowFloor);
+      // Throw to break out of the infinite while loop after one iteration
+      throw new Error('stop-loop');
+    });
+
+    // Run one iteration; it will throw 'stop-loop' which we catch
     await startPolling().catch((err) => {
       if (err.message !== 'stop-loop') throw err;
     });
@@ -486,5 +518,11 @@ describe('startPolling — SyncState initialisation uses upsert', () => {
     // The old findUnique + create pattern must NOT be used
     expect(mockPrisma.syncState.findUnique).not.toHaveBeenCalled();
     expect(mockPrisma.syncState.create).not.toHaveBeenCalled();
+    // The DB persist for the window-floor reset must have been called
+    expect(mockPrisma.syncState.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ lastLedger: expectedWindowFloor - 1, lastLedgerHash: null }),
+      })
+    );
   });
 });
