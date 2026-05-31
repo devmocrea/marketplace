@@ -65,7 +65,10 @@ router.get('/listings', async (req: Request, res: Response) => {
         }
 
         const take = Math.max(0, Math.min(Number(limit || 0), 1000)) || undefined;
-        const skip = Number(offset || 0) || undefined;
+        const rawOffset = Number(offset || 0);
+        const skip = Number.isFinite(rawOffset) && rawOffset > 0
+            ? Math.min(rawOffset, 10_000)
+            : undefined;
 
         const results = await prisma.listing.findMany({
             where,
@@ -311,4 +314,3 @@ router.get('/wallets/:address/royalty-stats', strictRateLimiter, async (req: Req
 });
 
 export default router;
-

@@ -125,6 +125,16 @@ describe('GET /listings', () => {
     expect(res.status).toBe(500);
     expect(res.body.error).toBeDefined();
   });
+
+  it('caps offset at 10000', async () => {
+    mockPrisma.listing.findMany.mockResolvedValue([]);
+
+    await request(app).get('/listings?offset=50000');
+
+    expect(mockPrisma.listing.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 10000 })
+    );
+  });
 });
 
 // ── GET /listings/:id/history ─────────────────────────────────────────────────
