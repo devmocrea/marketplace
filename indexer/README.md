@@ -30,6 +30,7 @@ A lightweight off-chain indexer for the Afristore Marketplace Soroban contract. 
 
 - Docker & Docker Compose
 - **Node.js 20.x** (used in CI, recommended for the TypeScript + Vitest toolchain; Node 18+ is the minimum for current dependencies)
+- A reachable Redis instance for cache-enabled endpoints. The API will fall back to direct database reads if Redis is unavailable, but `/activity/recent` and `/collections` lose their cache layer until Redis reconnects.
 
 ### Quick Start with Docker
 

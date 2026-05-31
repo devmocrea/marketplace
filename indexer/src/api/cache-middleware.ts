@@ -1,6 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import redisClient from '../redis.js';
 
+function isRedisReady(client: any) {
+    if (typeof client?.isReady === 'boolean') {
+        return client.isReady;
+    }
+
+    if (typeof client?.status === 'string') {
+        return client.status === 'ready';
+    }
+
+    return Boolean(client?.isOpen);
+}
+
 /**
  * Cache middleware with TTL support
  * @param ttl Time-to-live in seconds
@@ -9,7 +21,7 @@ export const cacheMiddleware = (ttl: number) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         // Skip caching if Redis is not connected
         const client = redisClient as any;
-        if (!client.isOpen && client.status !== 'ready') {
+        if (!isRedisReady(client)) {
             return next();
         }
 

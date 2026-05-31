@@ -19,6 +19,7 @@ const mockPrisma = vi.hoisted(() => ({
 
 const mockRedis = vi.hoisted(() => ({
   isOpen: false,
+  isReady: false,
   get: vi.fn(),
   setEx: vi.fn().mockResolvedValue(undefined),
   on: vi.fn(),

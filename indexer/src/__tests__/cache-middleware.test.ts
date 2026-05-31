@@ -4,6 +4,7 @@ import express from 'express';
 
 const mockRedisClient = vi.hoisted(() => ({
   isOpen: true,
+  isReady: true,
   get: vi.fn(),
   setEx: vi.fn().mockResolvedValue(undefined),
   on: vi.fn(),
@@ -27,6 +28,7 @@ describe('Cache Middleware', () => {
 
   it('passes through when Redis is not connected', async () => {
     mockRedisClient.isOpen = false;
+    mockRedisClient.isReady = false;
 
     const res = await request(app).get('/test');
     expect(res.status).toBe(200);
@@ -36,6 +38,7 @@ describe('Cache Middleware', () => {
 
   it('returns cached data on cache hit', async () => {
     mockRedisClient.isOpen = true;
+    mockRedisClient.isReady = true;
     mockRedisClient.get.mockResolvedValue(JSON.stringify({ message: 'cached', value: 123 }));
 
     const res = await request(app).get('/test');
@@ -47,6 +50,7 @@ describe('Cache Middleware', () => {
 
   it('caches the response on cache miss', async () => {
     mockRedisClient.isOpen = true;
+    mockRedisClient.isReady = true;
     mockRedisClient.get.mockResolvedValue(null);
 
     const res = await request(app).get('/test');
@@ -62,6 +66,7 @@ describe('Cache Middleware', () => {
 
   it('uses originalUrl as cache key', async () => {
     mockRedisClient.isOpen = true;
+    mockRedisClient.isReady = true;
     mockRedisClient.get.mockResolvedValue(null);
 
     await request(app).get('/test?foo=bar');
@@ -74,6 +79,7 @@ describe('Cache Middleware', () => {
 
   it('passes through on Redis error', async () => {
     mockRedisClient.isOpen = true;
+    mockRedisClient.isReady = true;
     mockRedisClient.get.mockRejectedValue(new Error('Redis down'));
 
     const res = await request(app).get('/test');

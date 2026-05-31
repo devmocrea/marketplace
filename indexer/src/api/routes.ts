@@ -27,7 +27,7 @@ async function getCached<T>(key: string, ttl: number, fetcher: () => Promise<T>)
     }
     const result = await fetcher();
     try {
-        await redis.set(key, JSON.stringify(result), 'EX', ttl);
+        await redis.set(key, JSON.stringify(result), { expiration: { type: 'EX', value: ttl } });
     } catch {
         // ignore cache write failures
     }
@@ -311,4 +311,3 @@ router.get('/wallets/:address/royalty-stats', strictRateLimiter, async (req: Req
 });
 
 export default router;
-
