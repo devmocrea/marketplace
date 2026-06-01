@@ -39,6 +39,8 @@ import {
     TrendingUp,
     Landmark,
     Share2,
+    Copy,
+    Check,
 } from "lucide-react";
 
 interface ListingClientProps {
@@ -57,6 +59,9 @@ export default function ListingDetailPage({ id }: ListingClientProps) {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'details' | 'history' | 'offers'>('details');
 
+    // Share button — momentary "Copied!" feedback
+    const [shareCopied, setShareCopied] = useState(false);
+
     // Hooks
     const { buy, isBuying, error: buyError } = useBuyArtwork(publicKey);
     const { bid, isBidding, error: bidError } = usePlaceBid(publicKey);
@@ -74,44 +79,6 @@ export default function ListingDetailPage({ id }: ListingClientProps) {
             setIsLoading(true);
             setError(null);
             try {
-                // Mock data fallback for placeholder IDs (1-6)
-                if (Number(id) >= 1 && Number(id) <= 6) {
-                    const mockIdx = Number(id) - 1;
-                    const mocks = [
-                        { title: "Ndebele Geometry", artist: "GB2...Traditional", category: "Traditional", price: 250, image: "https://images.unsplash.com/photo-1582582621959-48d27397dc69?w=800&q=80" },
-                        { title: "Maasai Beadwork Essence", artist: "GB3...Contemporary", category: "Contemporary", price: 180, image: "https://images.unsplash.com/photo-1590845947698-8924d7409b56?w=800&q=80" },
-                        { title: "Bronze Kingdom Legacy", artist: "GB4...Classical", category: "Classical", price: 420, image: "https://images.unsplash.com/photo-1580136579312-94651dfd596d?w=800&q=80" },
-                        { title: "Sahel Sunset Canvas", artist: "GB5...Modern", category: "Modern", price: 310, image: "https://images.unsplash.com/photo-1578926375605-eaf7559b1458?w=800&q=80" },
-                        { title: "Kente Woven Dreams", artist: "GB6...Textile", category: "Textile", price: 195, image: "https://images.unsplash.com/photo-1528699144885-3652875b4783?w=800&q=80" },
-                        { title: "Baobab Spirit", artist: "GB7...Sculpture", category: "Sculpture", price: 375, image: "https://images.unsplash.com/photo-1559519529-0935f852b3a6?w=800&q=80" },
-                    ];
-                    const m = mocks[mockIdx];
-                    setListing({
-                        listing_id: Number(id),
-                        artist: m.artist,
-                        metadata_cid: `mock_cid_${id}`,
-                        price: BigInt(m.price) * BigInt(10_000_000),
-                        currency: "XLM",
-                        token: "CAS...XLM",
-                        recipients: [],
-                        status: "Active",
-                        owner: null,
-                        created_at: Math.floor(Date.now() / 1000),
-                        original_creator: m.artist,
-                        royalty_bps: 500,
-                    });
-                    setMetadata({
-                        title: m.title,
-                        description: `A stunning masterpiece representing the rich ${m.title.split(' ')[0]} culture. This unique artwork captures the essence of African heritage through modern digital expression.`,
-                        artist: m.artist,
-                        image: m.image,
-                        year: "2024",
-                        category: m.category,
-                    });
-                    setIsLoading(false);
-                    return;
-                }
-
                 // Try fetching as listing first
                 let l: Listing | null = null;
                 let a: Auction | null = null;
@@ -178,6 +145,27 @@ export default function ListingDetailPage({ id }: ListingClientProps) {
             refreshOffers();
             setTimeout(() => setOfferSuccess(false), 3000);
         }
+    };
+
+    const handleShare = async () => {
+        const url = typeof window !== "undefined" ? window.location.href : "";
+        try {
+            await navigator.clipboard.writeText(url);
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 2000);
+        } catch {
+            // Fallback: open native share sheet if clipboard is unavailable
+            if (typeof navigator.share === "function") {
+                navigator.share({ title: metadata?.title ?? `Listing #${id}`, url }).catch(() => {});
+            }
+        }
+    };
+
+    const handleProvenance = () => {
+        // Switch to the history tab so the user sees the on-chain activity feed
+        setActiveTab("history");
+        // Scroll the tab panel into view on mobile
+        document.getElementById("listing-tabs")?.scrollIntoView({ behavior: "smooth" });
     };
 
     if (isLoading) {
@@ -259,7 +247,7 @@ export default function ListingDetailPage({ id }: ListingClientProps) {
                     </div>
 
                     {/* Description & Metadata Tabs */}
-                    <div className="rounded-3xl bg-white/5 border border-white/5 p-8 backdrop-blur-sm">
+                    <div id="listing-tabs" className="rounded-3xl bg-white/5 border border-white/5 p-8 backdrop-blur-sm">
                         <div className="flex gap-8 border-b border-white/5 mb-8">
                             {(['details', 'history', 'offers'] as const).map((tab) => (
                                 <button
@@ -570,10 +558,21 @@ export default function ListingDetailPage({ id }: ListingClientProps) {
 
                                 {/* Secondary Actions */}
                                 <div className="flex gap-3 pt-6">
-                                    <button className="flex-1 h-12 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 flex items-center justify-center gap-2 text-xs font-bold text-white/60">
-                                        <Share2 size={14} /> Share
+                                    <button
+                                        onClick={handleShare}
+                                        title="Copy link to clipboard"
+                                        className="flex-1 h-12 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 flex items-center justify-center gap-2 text-xs font-bold text-white/60"
+                                    >
+                                        {shareCopied
+                                            ? <><Check size={14} className="text-mint-400" /><span className="text-mint-400">Copied!</span></>
+                                            : <><Share2 size={14} /> Share</>
+                                        }
                                     </button>
-                                    <button className="flex-1 h-12 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 flex items-center justify-center gap-2 text-xs font-bold text-white/60">
+                                    <button
+                                        onClick={handleProvenance}
+                                        title="View on-chain provenance history"
+                                        className="flex-1 h-12 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 flex items-center justify-center gap-2 text-xs font-bold text-white/60"
+                                    >
                                         <ExternalLink size={14} /> Provenance
                                     </button>
                                 </div>
