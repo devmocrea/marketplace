@@ -16,6 +16,7 @@ const TOPIC_MAP: Record<string, string> = {
   'lst_updt': 'LISTING_UPDATED',
   'bid_plcd': 'BID_PLACED',
   'auc_rslv': 'AUCTION_RESOLVED',
+  'auc_cncl': 'AUCTION_CANCELLED',
   'ofr_made': 'OFFER_MADE',
   'ofr_accp': 'OFFER_ACCEPTED',
   'ofr_rjct': 'OFFER_REJECTED',

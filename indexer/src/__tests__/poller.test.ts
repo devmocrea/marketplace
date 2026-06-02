@@ -270,6 +270,21 @@ describe('processEvent — BID_PLACED', () => {
   });
 });
 
+// ── AUCTION_CANCELLED ─────────────────────────────────────────────────────────
+
+describe('processEvent — AUCTION_CANCELLED', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('sets auction status to Cancelled', async () => {
+    await processEvent(makeEvent('AUCTION_CANCELLED', 11n, 'GA_CREATOR', {}, 615));
+
+    expect(mockPrisma.auction.updateMany).toHaveBeenCalledWith({
+      where: { auctionId: 11n },
+      data: expect.objectContaining({ status: 'Cancelled' }),
+    });
+  });
+});
+
 // ── AUCTION_RESOLVED ───────────────────────────────────────────────────────────
 
 describe('processEvent — AUCTION_RESOLVED', () => {
@@ -535,6 +550,13 @@ describe('processEvent — out-of-order events do not throw', () => {
     const data = { winner: 'GB', amount: '100' };
     await expect(
       processEvent(makeEvent('AUCTION_RESOLVED', 99n, 'GA', data, 500))
+    ).resolves.not.toThrow();
+  });
+
+  it('AUCTION_CANCELLED with no prior auction resolves without throwing', async () => {
+    mockPrisma.auction.updateMany.mockResolvedValueOnce({ count: 0 });
+    await expect(
+      processEvent(makeEvent('AUCTION_CANCELLED', 99n, 'GA', {}, 500))
     ).resolves.not.toThrow();
   });
 });

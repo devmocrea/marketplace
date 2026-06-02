@@ -580,6 +580,18 @@ export async function processEvent(event: any, tx?: any, skipInsert = false) {
       break;
     }
 
+    case 'AUCTION_CANCELLED': {
+      const { count } = await db.auction.updateMany({
+        where: { auctionId: listingId },
+        data: {
+          status: 'Cancelled',
+          updatedAtLedger: ledgerSequence,
+        },
+      });
+      if (count === 0) console.warn(`AUCTION_CANCELLED: auction ${listingId} not found at ledger ${ledgerSequence}`);
+      break;
+    }
+
     case 'OFFER_MADE': {
       await db.offer.upsert({
         where: { offerId: BigInt(data.offer_id) },
