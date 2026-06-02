@@ -45,9 +45,9 @@ import {
   useAuctions,
   useArtistAuctions,
   useCreateAuction,
-  usePlaceBid,
   useFinalizeAuction,
 } from '@/hooks/useAuctions';
+import { usePlaceBid } from '@/hooks/usePlaceBid';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

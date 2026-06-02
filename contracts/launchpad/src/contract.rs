@@ -37,7 +37,6 @@ mod iface {
     use soroban_sdk::{contractclient, Address, BytesN, Env, String};
 
     #[contractclient(name = "Normal721Client")]
-    #[allow(dead_code)]
     pub trait INormal721 {
         fn initialize(
             env: Env,
@@ -51,7 +50,6 @@ mod iface {
     }
 
     #[contractclient(name = "Normal1155Client")]
-    #[allow(dead_code)]
     pub trait INormal1155 {
         fn initialize(
             env: Env,
@@ -63,7 +61,6 @@ mod iface {
     }
 
     #[contractclient(name = "Lazy721Client")]
-    #[allow(dead_code)]
     #[allow(clippy::too_many_arguments)]
     pub trait ILazy721 {
         fn initialize(
@@ -79,7 +76,6 @@ mod iface {
     }
 
     #[contractclient(name = "Lazy1155Client")]
-    #[allow(dead_code)]
     pub trait ILazy1155 {
         fn initialize(
             env: Env,

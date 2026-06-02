@@ -57,6 +57,7 @@ export async function handleMetrics(req: express.Request, res: express.Response)
     res.set('Content-Type', client.register.contentType);
     res.end(await client.register.metrics());
   } catch (err) {
-    res.status(500).end(err);
+    console.error('Error details:', err);
+    res.status(500).end('Failed to retrieve metrics');
   }
 }

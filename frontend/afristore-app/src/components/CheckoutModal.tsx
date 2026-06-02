@@ -5,36 +5,10 @@ import {
   X,
   CreditCard,
   Wallet,
-  CheckCircle2,
   Loader2,
-  DollarSign,
-  Lock,
-  ArrowRight,
 } from "lucide-react";
 import { Listing, stroopsToXlm } from "@/lib/contract";
 import posthog from "posthog-js";
-
-// Sponsor relay: POST to /api/fiat-relay with listing + card token.
-// The backend buys XLM via a fiat anchor and executes the contract trade.
-async function callFiatRelay(
-  listingId: number,
-  cardToken: string,
-  amountFiat: string,
-): Promise<void> {
-  const res = await fetch("/api/fiat-relay", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      listing_id: listingId,
-      card_token: cardToken,
-      amount_fiat: amountFiat,
-    }),
-  });
-  if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(body.error ?? `Relay failed (${res.status})`);
-  }
-}
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -54,46 +28,11 @@ export function CheckoutModal({
   isBuyingCrypto,
 }: CheckoutModalProps) {
   const [method, setMethod] = useState<"crypto" | "fiat">("crypto");
-  const [fiatStep, setFiatStep] = useState<
-    "idle" | "selecting" | "processing" | "success" | "error"
-  >("idle");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvc, setCardCvc] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
 
   if (!isOpen) return null;
 
   const priceXlm = Number(stroopsToXlm(listing.price));
-  const estimatedFiat = (priceXlm * 0.12).toFixed(2); // Mock XLM price $0.12
-
-  const handleFiatPurchase = async () => {
-    setFiatStep("processing");
-    setErrorMsg("");
-    try {
-      // In production: tokenise the card via Stripe.js / Moneywave and pass the token.
-      const cardToken = `tok_mock_${cardNumber.replace(/\s/g, "").slice(-4)}`;
-      await callFiatRelay(listing.listing_id, cardToken, estimatedFiat);
-      setFiatStep("success");
-      posthog.capture("Purchase Successful", {
-        listing_id: listing.listing_id,
-        price_xlm: priceXlm,
-        method: "fiat",
-      });
-      setTimeout(() => {
-        onPurchased?.();
-        onClose();
-        setFiatStep("idle");
-      }, 2000);
-    } catch (err: unknown) {
-      setFiatStep("error");
-      setErrorMsg(
-        err instanceof Error
-          ? err.message
-          : "An error occurred during fiat checkout.",
-      );
-    }
-  };
+  const estimatedFiat = (priceXlm * 0.12).toFixed(2);
 
   const handleCryptoPurchase = async () => {
     const success = await onCryptoPurchase();
@@ -145,159 +84,45 @@ export function CheckoutModal({
             </div>
           </div>
 
-          {fiatStep === "success" ? (
-            <div className="py-8 text-center animate-fade-in">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-mint-100 text-mint-500">
-                <CheckCircle2 size={32} />
-              </div>
-              <h3 className="font-display text-xl font-bold text-gray-900">
-                Payment Successful!
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                The NFT has been transferred to your wallet.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500">
-                Select Payment Method
-              </h3>
+          {/* Payment method selector */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500">
+              Select Payment Method
+            </h3>
 
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setMethod("crypto")}
-                  className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-4 transition-all ${method === "crypto" ? "border-brand-500 bg-brand-50 text-brand-600" : "border-gray-100 hover:border-gray-200 text-gray-600"}`}
-                >
-                  <Wallet size={24} />
-                  <span className="text-sm font-semibold">Crypto</span>
-                </button>
-
-                <button
-                  onClick={() => setMethod("fiat")}
-                  className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-4 transition-all ${method === "fiat" ? "border-brand-500 bg-brand-50 text-brand-600" : "border-gray-100 hover:border-gray-200 text-gray-600"}`}
-                >
-                  <CreditCard size={24} />
-                  <span className="text-sm font-semibold">Credit Card</span>
-                </button>
-              </div>
-
-              {method === "fiat" && fiatStep === "idle" && (
-                <div className="rounded-2xl border border-brand-100 bg-brand-50/50 p-4 mt-4">
-                  <div className="flex items-start gap-3">
-                    <DollarSign className="text-brand-500 mt-0.5" size={18} />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        Direct Fiat Purchase
-                      </p>
-                      <p className="mt-1 text-xs text-gray-600">
-                        Pay with your card. We&apos;ll instantly buy XLM and
-                        execute the smart contract trade for you.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {method === "fiat" && fiatStep === "selecting" && (
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Lock size={14} className="text-gray-400" />
-                    <p className="text-xs text-gray-500 font-inter">
-                      Payments secured via encrypted relay
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={19}
-                      placeholder="1234 5678 9012 3456"
-                      value={cardNumber}
-                      onChange={(e) =>
-                        setCardNumber(
-                          e.target.value.replace(/[^\d\s]/g, "").slice(0, 19),
-                        )
-                      }
-                      className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                        Expiry
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="MM / YY"
-                        maxLength={7}
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
-                        className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                        CVC
-                      </label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="123"
-                        maxLength={4}
-                        value={cardCvc}
-                        onChange={(e) =>
-                          setCardCvc(
-                            e.target.value.replace(/\D/g, "").slice(0, 4),
-                          )
-                        }
-                        className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {errorMsg && (
-                <p className="mt-4 text-sm text-red-500">{errorMsg}</p>
-              )}
-
+            <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => {
-                  if (method === "crypto") {
-                    handleCryptoPurchase();
-                  } else if (fiatStep === "idle") {
-                    setFiatStep("selecting");
-                  } else {
-                    handleFiatPurchase();
-                  }
-                }}
-                disabled={
-                  isBuyingCrypto ||
-                  fiatStep === "processing" ||
-                  (fiatStep === "selecting" &&
-                    (cardNumber.replace(/\s/g, "").length < 12 ||
-                      cardExpiry.length < 4 ||
-                      cardCvc.length < 3))
-                }
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-500 py-4 font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 transition-all disabled:opacity-50"
+                onClick={() => setMethod("crypto")}
+                className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-4 transition-all ${method === "crypto" ? "border-brand-500 bg-brand-50 text-brand-600" : "border-gray-100 hover:border-gray-200 text-gray-600"}`}
               >
-                {isBuyingCrypto || fiatStep === "processing" ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} /> Processing...
-                  </>
-                ) : method === "fiat" && fiatStep === "idle" ? (
-                  <>
-                    <ArrowRight size={18} /> Enter Card Details
-                  </>
-                ) : (
-                  `Pay ${method === "crypto" ? `${priceXlm} XLM` : `$${estimatedFiat}`}`
-                )}
+                <Wallet size={24} />
+                <span className="text-sm font-semibold">Crypto</span>
               </button>
+
+              {/* Fiat payment — coming soon */}
+              <div className="relative flex flex-col items-center gap-3 rounded-2xl border-2 border-gray-100 p-4 text-gray-400 cursor-not-allowed select-none opacity-60">
+                <CreditCard size={24} />
+                <span className="text-sm font-semibold">Credit Card</span>
+                <span className="absolute -top-2 right-2 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-orange-600">
+                  Coming Soon
+                </span>
+              </div>
             </div>
-          )}
+
+            <button
+              onClick={handleCryptoPurchase}
+              disabled={isBuyingCrypto}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-500 py-4 font-bold text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 transition-all disabled:opacity-50"
+            >
+              {isBuyingCrypto ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} /> Processing...
+                </>
+              ) : (
+                `Pay ${priceXlm} XLM`
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

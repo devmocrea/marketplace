@@ -28,6 +28,10 @@ pub enum MarketplaceError {
     ListingCancelled = 21,
     ReentrancyGuard = 22,
     ContractPaused = 23,
+    /// Royalty bps greater than 10000 (100%) — rejects create_listing/create_auction
+    InvalidRoyalty = 24,
+    /// Token attempted at purchase time but is no longer whitelisted
+    TokenNotWhitelisted = 25,
 }
 
 #[contracttype]

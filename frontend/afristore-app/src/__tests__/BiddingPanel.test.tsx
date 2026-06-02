@@ -14,8 +14,11 @@ jest.mock('@/context/WalletContext', () => ({
   useWalletContext: () => ({ publicKey: 'GBIDDER123' }),
 }));
 
-jest.mock('@/hooks/useAuctions', () => ({
+jest.mock('@/hooks/usePlaceBid', () => ({
   usePlaceBid: () => ({ bid: mockBid, isBidding: false, error: null }),
+}));
+
+jest.mock('@/hooks/useAuctions', () => ({
   useFinalizeAuction: () => ({ finalize: mockFinalize, isFinalizing: false, error: null }),
 }));
 

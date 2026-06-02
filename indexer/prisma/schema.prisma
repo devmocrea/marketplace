@@ -34,6 +34,7 @@ model Listing {
   updatedAtLedger Int
   @@index([artist])
   @@index([status])
+  @@index([updatedAtLedger])
 }
 
 model Auction {
@@ -51,6 +52,7 @@ model Auction {
   originalCreator String
   createdAtLedger Int
   updatedAtLedger Int
+  @@index([updatedAtLedger])
 }
 
 model Offer {
@@ -62,6 +64,7 @@ model Offer {
   status          String   // "Pending", "Accepted", "Rejected", "Withdrawn"
   createdAtLedger Int
   updatedAtLedger Int
+  @@index([listingId])
 }
 
 
@@ -75,6 +78,10 @@ model MarketplaceEvent {
   ledgerTimestamp DateTime @default(now())
   @@index([actor])
   @@index([eventType])
+  @@index([listingId])
+  @@index([ledgerSequence])
+  @@index([listingId, ledgerSequence])
+  @@unique([listingId, eventType, ledgerSequence])
 }
 
 model Collection {

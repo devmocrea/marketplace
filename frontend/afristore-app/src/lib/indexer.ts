@@ -368,6 +368,7 @@ export async function fetchArtistListings(
 
 /**
  * Fetch listings from the indexer with optional filters and pagination.
+ * Throws if the indexer is unreachable so callers can fall back to on-chain.
  */
 export async function fetchListings(options: {
   status?: string;
@@ -376,7 +377,7 @@ export async function fetchListings(options: {
   minPrice?: string;
   maxPrice?: string;
   search?: string;
-} = {}): Promise<{ listings: unknown[]; total?: number }> {
+} = {}): Promise<{ listings: any[]; total?: number }> {
   const params = new URLSearchParams();
   if (options.status) params.set('status', options.status);
   if (options.limit != null) params.set('limit', String(options.limit));
@@ -385,20 +386,17 @@ export async function fetchListings(options: {
   if (options.maxPrice) params.set('maxPrice', options.maxPrice);
   if (options.search) params.set('search', options.search);
   const q = params.toString();
-  try {
-    const raw = await fetchWithRetry<unknown>(`/listings${q ? `?${q}` : ''}`);
-    if (raw == null) return { listings: [] };
-    // If paginated, indexer returns { listings, total }
-    if (typeof raw === 'object' && (raw as any).listings) {
-      const r = raw as any;
-      return { listings: Array.isArray(r.listings) ? r.listings : [], total: r.total };
-    }
-    if (Array.isArray(raw)) return { listings: raw };
-    return { listings: [] };
-  } catch (e) {
-    console.warn('[indexer] fetchListings:', e instanceof Error ? e.message : e);
-    return { listings: [] };
+
+  const raw = await fetchWithRetry<unknown>(`/listings${q ? `?${q}` : ''}`);
+  if (raw == null) return { listings: [] };
+  
+  // If paginated, indexer returns { listings, total }
+  if (typeof raw === 'object' && (raw as any).listings) {
+    const r = raw as any;
+    return { listings: Array.isArray(r.listings) ? r.listings : [], total: r.total };
   }
+  if (Array.isArray(raw)) return { listings: raw };
+  return { listings: [] };
 }
 
 /**

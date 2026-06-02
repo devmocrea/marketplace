@@ -1,4 +1,27 @@
-import { stroopsToXlm } from '../lib/contract'
+import { stroopsToXlm, xlmToStroops } from '../lib/contract'
+
+describe('xlmToStroops', () => {
+  it('converts 0.0000001 XLM to 1 stroop (FP bug regression)', () => {
+    // BigInt(Math.round(0.0000001 * 10_000_000)) === 0n due to FP drift;
+    // xlmToStroops must return 1n
+    expect(xlmToStroops(0.0000001)).toBe(1n)
+  })
+
+  it('converts whole XLM values', () => {
+    expect(xlmToStroops(1)).toBe(10_000_000n)
+    expect(xlmToStroops(50)).toBe(500_000_000n)
+  })
+
+  it('converts fractional XLM values', () => {
+    expect(xlmToStroops(1.05)).toBe(10_500_000n)
+    expect(xlmToStroops(0.5)).toBe(5_000_000n)
+  })
+
+  it('converts 0 XLM to 0 stroops', () => {
+    expect(xlmToStroops(0)).toBe(0n)
+  })
+})
+
 
 describe('stroopsToXlm', () => {
   it('correctly converts 0 stroops to "0"', () => {

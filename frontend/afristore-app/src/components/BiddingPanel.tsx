@@ -7,7 +7,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Auction, stroopsToXlm } from "@/lib/contract";
 import { useWalletContext } from "@/context/WalletContext";
-import { usePlaceBid, useFinalizeAuction } from "@/hooks/useAuctions";
+import { usePlaceBid } from "@/hooks/usePlaceBid";
+import { useFinalizeAuction } from "@/hooks/useAuctions";
 import { GuardButton } from "@/components/WalletGuard";
 import {
   Gavel,
@@ -72,8 +73,8 @@ export function BiddingPanel({
   const [bidAmount, setBidAmount] = useState("");
   const [bidSuccess, setBidSuccess] = useState(false);
 
-  const currentBidXlm = Number(auction.highest_bid) / 10_000_000;
-  const reserveXlm = Number(auction.reserve_price) / 10_000_000;
+  const currentBidXlm = parseFloat(stroopsToXlm(auction.highest_bid));
+  const reserveXlm = parseFloat(stroopsToXlm(auction.reserve_price));
   const minimumBid = Math.max(
     currentBidXlm > 0 ? currentBidXlm + 0.0000001 : reserveXlm,
     reserveXlm
@@ -119,9 +120,8 @@ export function BiddingPanel({
       {/* Status badge */}
       <div className="flex items-center justify-between">
         <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            STATUS_COLOR[auction.status] ?? ""
-          }`}
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLOR[auction.status] ?? ""
+            }`}
         >
           {auction.status}
         </span>

@@ -17,7 +17,7 @@ Redis caching has been implemented to handle traffic spikes on high-traffic endp
 ### Files Modified
 
 1. **`src/api/routes.ts`** - Added caching middleware to target endpoints
-2. **`package.json`** - Added `redis` dependency
+2. **`package.json`** - Added the official `redis` client dependency
 
 ## Cached Endpoints
 
@@ -69,6 +69,7 @@ The caching middleware is designed to fail gracefully:
 - If Redis is not connected, requests bypass the cache and hit the database directly
 - Cache errors are logged but don't break the API
 - The application can run without Redis (though without caching benefits)
+- The Redis client uses an exponential backoff reconnect strategy, so temporary outages should recover automatically without restarting the indexer
 
 ### Query Parameter Support
 
@@ -197,6 +198,7 @@ If you see "Redis Client Error" in logs:
 1. Ensure Redis is running: `redis-cli ping` (should return "PONG")
 2. Check `REDIS_URL` in your `.env` file
 3. Verify network connectivity to Redis host
+4. If the outage is temporary, wait for the reconnect backoff to recover automatically
 
 ### Cache Not Working
 
@@ -222,4 +224,4 @@ If cached data seems outdated:
 
 ## Dependencies
 
-- `redis` (^4.x): Official Redis client for Node.js
+- `redis` (^5.x): Official Redis client for Node.js

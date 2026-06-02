@@ -13,13 +13,13 @@ use crate::events::*;
 use crate::{
     storage::{
         acquire_auction_lock, acquire_listing_lock, add_artist_auction_id, add_artist_listing_id,
-        clear_pending_admin_storage, get_artist_listing_ids, get_listing_count,
-        get_pending_admin_storage, increment_auction_count, increment_listing_count,
-        increment_offer_count, is_artist_revoked_storage, load_auction, load_listing,
-        load_listing_offers, load_offer, load_offerer_offers, release_auction_lock,
+        clear_pending_admin_storage, get_artist_auction_ids, get_artist_listing_ids,
+        get_listing_count, get_pending_admin_storage, increment_auction_count,
+        increment_listing_count, increment_offer_count, is_artist_revoked_storage, load_auction,
+        load_listing, load_listing_offers, load_offer, load_offerer_offers, release_auction_lock,
         release_listing_lock, remove_artist_revocation_storage, save_auction, save_listing,
         save_listing_offers, save_offer, save_offerer_offers, set_artist_revocation_storage,
-        set_pending_admin_storage,
+        set_pending_admin_storage, get_auction_count,
     },
     types::{
         Auction, AuctionStatus, Listing, ListingStatus, MarketplaceError, Offer, OfferStatus,
@@ -229,7 +229,7 @@ impl MarketplaceContract {
         }
         artist.require_auth();
         if Self::is_artist_revoked(env.clone(), artist.clone()) {
-            panic_with_error!(&env, MarketplaceError::Unauthorized);
+            panic_with_error!(&env, MarketplaceError::ArtistRevoked);
         }
         if metadata_cid.is_empty() {
             panic_with_error!(&env, MarketplaceError::InvalidCid);
@@ -238,10 +238,19 @@ impl MarketplaceContract {
             panic_with_error!(&env, MarketplaceError::InvalidPrice);
         }
 
-        let recipients_len = recipients.len();
-        if recipients_len == 0 || recipients_len > 4 {
-            panic_with_error!(&env, MarketplaceError::TooManyRecipients);
+                // Validate royalty bps — must not exceed 10000 (100%). Reject explicitly.
+                if royalty_bps > 10_000 {
+                    panic_with_error!(&env, MarketplaceError::InvalidRoyalty);
         }
+
+                let recipients_len = recipients.len();
+                // Empty recipient arrays are an invalid split configuration; reject with InvalidSplit.
+                if recipients_len == 0 {
+                    panic_with_error!(&env, MarketplaceError::InvalidSplit);
+                }
+                if recipients_len > 4 {
+                    panic_with_error!(&env, MarketplaceError::TooManyRecipients);
+                }
 
         let mut total_percentage = 0;
         for i in 0..recipients_len {
@@ -317,7 +326,10 @@ impl MarketplaceContract {
             }
         }
 
-        if new_price <= 0 || new_metadata_cid.is_empty() {
+        if new_metadata_cid.is_empty() {
+            panic_with_error!(&env, MarketplaceError::InvalidCid);
+        }
+        if new_price <= 0 {
             panic_with_error!(&env, MarketplaceError::InvalidPrice);
         }
         if !Self::is_token_whitelisted(&env, &new_token) {
@@ -325,10 +337,13 @@ impl MarketplaceContract {
         }
 
         let new_recipients_len = new_recipients.len();
-        if new_recipients_len == 0 || new_recipients_len > 4 {
-            panic_with_error!(&env, MarketplaceError::TooManyRecipients);
+                if new_recipients_len == 0 {
+                    panic_with_error!(&env, MarketplaceError::InvalidSplit);
         }
-        let mut total_pct = 0u32;
+                if new_recipients_len > 4 {
+                    panic_with_error!(&env, MarketplaceError::TooManyRecipients);
+                }
+                let mut total_pct = 0u32;
         for i in 0..new_recipients_len {
             total_pct += new_recipients.get(i).unwrap().percentage;
         }
@@ -392,17 +407,23 @@ impl MarketplaceContract {
             panic_with_error!(&env, MarketplaceError::CannotBuyOwnListing);
         }
 
-        Self::distribute_payout(
-            &env,
-            &listing.token,
-            listing.price,
-            &listing.original_creator,
-            listing.royalty_bps,
-            &listing.artist,
-            &listing.recipients,
-            &buyer,
-            true,
-        );
+        // Ensure token is still whitelisted at purchase time. If it was removed after listing creation, block the purchase.
+                if !Self::is_token_whitelisted(&env, &listing.token) {
+                    release_listing_lock(&env, listing_id);
+                    panic_with_error!(&env, MarketplaceError::TokenNotWhitelisted);
+                }
+
+                Self::distribute_payout(
+                    &env,
+                    &listing.token,
+                    listing.price,
+                    &listing.original_creator,
+                    listing.royalty_bps,
+                    &listing.artist,
+                    &listing.recipients,
+                    &buyer,
+                    true,
+                );
 
         listing.status = ListingStatus::Sold;
         listing.owner = Some(buyer.clone());
@@ -504,7 +525,11 @@ impl MarketplaceContract {
         if !Self::is_token_whitelisted(&env, &token) {
             panic_with_error!(&env, MarketplaceError::Unauthorized);
         }
-        let auction_id = increment_auction_count(&env);
+                // Validate royalty bps — must not exceed 10000 (100%). Reject explicitly.
+                if royalty_bps > 10_000 {
+                    panic_with_error!(&env, MarketplaceError::InvalidRoyalty);
+                }
+                let auction_id = increment_auction_count(&env);
         let end_time = env.ledger().timestamp() + duration;
         let auction = Auction {
             auction_id,
@@ -570,6 +595,9 @@ impl MarketplaceContract {
     }
 
     pub fn finalize_auction(env: Env, caller: Address, auction_id: u64) {
+        if crate::storage::is_paused(&env) {
+            panic_with_error!(&env, MarketplaceError::ContractPaused);
+        }
         caller.require_auth();
 
         // Reentrancy guard
@@ -652,11 +680,7 @@ impl MarketplaceContract {
         if amount <= 0 {
             panic_with_error!(&env, MarketplaceError::InsufficientOfferAmount);
         }
-        TokenClient::new(&env, &token).transfer(
-            &offerer,
-            &env.current_contract_address(),
-            &amount,
-        );
+        TokenClient::new(&env, &token).transfer(&offerer, &env.current_contract_address(), &amount);
         let offer_id = increment_offer_count(&env);
         save_offer(
             &env,
@@ -756,12 +780,26 @@ impl MarketplaceContract {
         artist.require_auth();
         let mut offer = load_offer(&env, offer_id)
             .unwrap_or_else(|| panic_with_error!(&env, MarketplaceError::OfferNotFound));
-        let mut listing = load_listing(&env, offer.listing_id)
-            .unwrap_or_else(|| panic_with_error!(&env, MarketplaceError::ListingNotFound));
+        let listing_id = offer.listing_id;
+
+        // Reentrancy guard (same listing lock as buy_artwork)
+        if !acquire_listing_lock(&env, listing_id) {
+            panic_with_error!(&env, MarketplaceError::ReentrancyGuard);
+        }
+
+        let mut listing = match load_listing(&env, listing_id) {
+            Some(l) => l,
+            None => {
+                release_listing_lock(&env, listing_id);
+                panic_with_error!(&env, MarketplaceError::ListingNotFound);
+            }
+        };
         if listing.artist != artist {
+            release_listing_lock(&env, listing_id);
             panic_with_error!(&env, MarketplaceError::Unauthorized);
         }
         if offer.status != OfferStatus::Pending || listing.status != ListingStatus::Active {
+            release_listing_lock(&env, listing_id);
             panic_with_error!(&env, MarketplaceError::OfferNotPending);
         }
         Self::distribute_payout(
@@ -808,6 +846,8 @@ impl MarketplaceContract {
                 }
             }
         }
+
+        release_listing_lock(&env, listing_id);
     }
 
     pub fn get_listing(env: Env, listing_id: u64) -> Listing {
@@ -819,6 +859,14 @@ impl MarketplaceContract {
     }
     pub fn get_artist_listings(env: Env, artist: Address) -> Vec<u64> {
         get_artist_listing_ids(&env, &artist)
+    }
+
+    pub fn get_total_auctions(env: Env) -> u64 {
+        get_auction_count(&env)
+    }
+
+    pub fn get_artist_auctions(env: Env, artist: Address) -> Vec<u64> {
+        get_artist_auction_ids(&env, &artist)
     }
 
     pub fn get_active_listings(env: Env, limit: u32, offset: u32) -> Vec<u64> {
@@ -895,7 +943,6 @@ impl MarketplaceContract {
     }
 
     #[allow(clippy::too_many_arguments)]
-    #[allow(dead_code)]
     fn distribute_payout(
         env: &Env,
         token_addr: &Address,

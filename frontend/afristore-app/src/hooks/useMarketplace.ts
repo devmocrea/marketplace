@@ -16,7 +16,7 @@ import {
   Listing,
   stroopsToXlm,
 } from "@/lib/contract";
-import { fetchListings } from "@/lib/indexer";
+import { fetchListings, fetchArtistListings } from "@/lib/indexer";
 import { config } from "@/lib/config";
 import {
   uploadImageToIPFS,
@@ -117,6 +117,16 @@ export function useArtistListings(artistPublicKey: string | null) {
     setIsLoading(true);
     setError(null);
     try {
+      try {
+        const raw = await fetchArtistListings(artistPublicKey);
+        if (raw && raw.length >= 0) {
+          setListings(raw.sort((a: any, b: any) => b.created_at - a.created_at));
+          return;
+        }
+      } catch (e) {
+        console.warn("[indexer] useArtistListings fallback:", e);
+      }
+
       const ids = await getArtistListings(artistPublicKey);
       const resolved = await Promise.all(ids.map((id) => getListing(id)));
       setListings(resolved.sort((a, b) => b.created_at - a.created_at));
@@ -209,7 +219,7 @@ export function useCreateListing(artistPublicKey: string | null) {
         trackEvent.listingCreated(
           listingId,
           input.price.toString(),
-          token.code || "XLM",
+          token.symbol || "XLM",
         );
 
         setProgress("Listing created successfully!");
@@ -427,35 +437,4 @@ export function useAuction(auctionId: number | null) {
   }, [refresh]);
 
   return { auction, isLoading, error, refresh };
-}
-
-// ── usePlaceBid ───────────────────────────────────────────────
-
-export function usePlaceBid(bidderPublicKey: string | null) {
-  const [isBidding, setIsBidding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  useTransientErrorToast(error);
-
-  const bid = useCallback(
-    async (auctionId: number, amountXlm: number): Promise<boolean> => {
-      if (!bidderPublicKey) {
-        setError("Wallet not connected");
-        return false;
-      }
-      setIsBidding(true);
-      setError(null);
-      try {
-        await placeBid(bidderPublicKey, auctionId, amountXlm);
-        return true;
-      } catch (err: unknown) {
-        setError(getReadableErrorMessage(err, "Bid failed"));
-        return false;
-      } finally {
-        setIsBidding(false);
-      }
-    },
-    [bidderPublicKey],
-  );
-
-  return { bid, isBidding, error };
 }

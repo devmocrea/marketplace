@@ -8,13 +8,14 @@ import { useState } from "react";
 import { useWalletContext } from "@/context/WalletContext";
 import { useArtistListings, useCancelListing } from "@/hooks/useMarketplace";
 import { ListingForm } from "@/components/ListingForm";
+import { AuctionForm } from "@/components/AuctionForm";
 import { stroopsToXlm, Listing } from "@/lib/contract";
-import { Plus, Package, XCircle, Wallet, Edit2, Activity, TrendingUp, History } from "lucide-react";
+import { Plus, Package, XCircle, Wallet, Edit2, Activity, TrendingUp, Gavel } from "lucide-react";
 import { WalletGuard } from "@/components/WalletGuard";
 import { SUPPORTED_TOKENS } from "@/config/tokens";
 import { clsx } from "clsx";
 
-type Tab = "listings" | "list" | "edit";
+type Tab = "listings" | "list" | "edit" | "auction";
 
 const STATUS_COLOR: Record<string, string> = {
   Active: "text-green-600 bg-green-50",
@@ -145,6 +146,19 @@ export default function DashboardPage() {
                 <div className="absolute inset-x-4 bottom-0 h-1.5 rounded-t-full bg-mint-500 shadow-[0_-5px_15px_rgba(38,167,110,0.6)] animate-slide-in-right" />
               )}
             </button>
+            <button
+              onClick={() => setTab("auction")}
+              className={clsx(
+                "group relative flex items-center gap-3 px-6 sm:px-8 py-5 text-sm font-bold transition-all duration-500 whitespace-nowrap",
+                tab === "auction" ? "text-brand-400" : "text-white/40 hover:text-white"
+              )}
+            >
+              <Gavel size={18} className={clsx("transition-all duration-500 group-hover:scale-125", tab === "auction" && "text-brand-400 drop-shadow-[0_0_8px_rgba(226,125,96,0.5)]")} />
+              New Auction
+              {tab === "auction" && (
+                <div className="absolute inset-x-4 bottom-0 h-1.5 rounded-t-full bg-brand-500 shadow-[0_-5px_15px_rgba(226,125,96,0.6)] animate-slide-in-right" />
+              )}
+            </button>
             {tab === "edit" && (
               <button
                 className="group relative flex items-center gap-3 px-6 sm:px-8 py-5 text-sm font-bold transition-all duration-500 whitespace-nowrap text-terracotta-400"
@@ -164,6 +178,13 @@ export default function DashboardPage() {
                     refresh();
                     setTab("listings");
                   }}
+                  onCancel={() => setTab("listings")}
+                />
+              </div>
+            ) : tab === "auction" ? (
+              <div className="w-full">
+                <AuctionForm
+                  onSuccess={() => setTab("listings")}
                   onCancel={() => setTab("listings")}
                 />
               </div>

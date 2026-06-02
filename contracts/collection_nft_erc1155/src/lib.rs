@@ -323,7 +323,7 @@ impl NormalNFT1155 {
             .storage()
             .persistent()
             .get(&DataKey::TotalSupply(token_id))
-            .unwrap_or(amount);
+            .unwrap_or(0);
         env.storage().persistent().set(
             &DataKey::TotalSupply(token_id),
             &(supply.saturating_sub(amount)),
@@ -600,11 +600,7 @@ impl NormalNFT1155 {
 
         // Emit TransferSingle event (ERC-1155 standard) - operator is from for direct transfers
         env.events().publish(
-            (
-                Symbol::new(env, "TransferSingle"),
-                from.clone(),
-                to.clone(),
-            ),
+            (Symbol::new(env, "TransferSingle"), from.clone(), to.clone()),
             (token_id, amount),
         );
         Ok(())
