@@ -374,6 +374,34 @@ fn test_update_listing_success() {
 }
 
 #[test]
+#[should_panic(expected = "Error(Contract, #1)")]
+fn test_update_listing_empty_cid() {
+    let (env, client, artist, _, token_id, _contract_id) = setup();
+    client.set_admin(&artist);
+    client.add_token_to_whitelist(&token_id);
+    let cid = bytes!(&env, 0x516d74657374);
+    let id = client.create_listing(
+        &artist,
+        &cid,
+        &5_000_000_i128,
+        &symbol_short!("XLM"),
+        &token_id,
+        &0u32,
+        &valid_recipients(&env, &artist),
+    );
+
+    let new_rec = valid_recipients(&env, &artist);
+    client.update_listing(
+        &artist,
+        &id,
+        &bytes!(&env,),
+        &10_000_000_i128,
+        &token_id,
+        &new_rec,
+    );
+}
+
+#[test]
 #[should_panic(expected = "Error(Contract, #5)")]
 fn test_update_listing_wrong_artist() {
     let (env, client, artist, buyer, token_id, _contract_id) = setup();

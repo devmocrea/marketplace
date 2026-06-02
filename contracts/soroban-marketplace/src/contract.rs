@@ -326,7 +326,10 @@ impl MarketplaceContract {
             }
         }
 
-        if new_price <= 0 || new_metadata_cid.is_empty() {
+        if new_metadata_cid.is_empty() {
+            panic_with_error!(&env, MarketplaceError::InvalidCid);
+        }
+        if new_price <= 0 {
             panic_with_error!(&env, MarketplaceError::InvalidPrice);
         }
         if !Self::is_token_whitelisted(&env, &new_token) {
