@@ -32,6 +32,7 @@ import {
   getNativeTokenConfig,
   getTokenConfigByAddress,
 } from "@/config/tokens";
+import { fetchListings, fetchAuctions } from "./indexer";
 
 // ── Types mirrored from the Rust contract ────────────────────
 
@@ -376,6 +377,7 @@ export async function getArtistListings(artistPublicKey: string): Promise<number
 }
 
 /**
+ * getAllListings — Fetch listings using indexer if possible, fallback to on-chain scan.
  * getAllListings — Fetch every listing from ID 1 up to total.
  * Uses batching to avoid excessive parallel RPC calls.
  */
@@ -385,6 +387,23 @@ export async function getAllListings(): Promise<Listing[]> {
     return getE2eMockListings();
   }
 
+  // Optimized path: Use the indexer (1 RPC/HTTP call)
+  try {
+    const res = await fetchListings({ status: "Active" });
+    if (res.listings && res.listings.length > 0) {
+      return res.listings as Listing[];
+    }
+  } catch (e) {
+    console.warn("[indexer] getAllListings fallback:", e);
+  }
+
+  // Backup path: On-chain scan (N RPC calls)
+  const total = await getTotalListings();
+  const ids = Array.from({ length: total }, (_, i) => i + 1);
+  const results = await Promise.all(
+    ids.map((id) => getListing(id).catch(() => null))
+  );
+  return results.filter((l): l is Listing => l !== null);
   const totalRaw = await getTotalListings();
   const total = Math.min(totalRaw, 1000); // Safety limit
   if (total <= 0) return [];
@@ -617,6 +636,20 @@ export async function getArtistAuctions(
 }
 
 /**
+ * getAllAuctions — Fetch auctions using indexer if possible, fallback to on-chain scan.
+ */
+export async function getAllAuctions(): Promise<Auction[]> {
+  // Optimized path: Use the indexer (1 RPC/HTTP call)
+  try {
+    const raw = await fetchAuctions({ status: "Active" });
+    if (raw && raw.length > 0) {
+      return raw as Auction[];
+    }
+  } catch (e) {
+    console.warn("[indexer] getAllAuctions fallback:", e);
+  }
+
+  // Backup path: On-chain scan (Probing loop)
  * get_total_auctions — Read the total auction count.
  */
 export async function getTotalAuctions(): Promise<number> {

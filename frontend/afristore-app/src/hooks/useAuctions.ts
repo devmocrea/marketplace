@@ -75,6 +75,16 @@ export function useArtistAuctions(artistPublicKey: string | null) {
     setIsLoading(true);
     setError(null);
     try {
+      try {
+        const raw = await fetchAuctions({ creator: artistPublicKey });
+        if (raw && raw.length >= 0) {
+          setAuctions(raw as Auction[]);
+          return;
+        }
+      } catch (e) {
+        console.warn("[indexer] useArtistAuctions fallback:", e);
+      }
+
       const ids = await getArtistAuctions(artistPublicKey);
       const resolved = await Promise.all(ids.map((id) => getAuction(id)));
       setAuctions(resolved);

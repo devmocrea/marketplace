@@ -16,7 +16,7 @@ import {
   Listing,
   stroopsToXlm,
 } from "@/lib/contract";
-import { fetchListings } from "@/lib/indexer";
+import { fetchListings, fetchArtistListings } from "@/lib/indexer";
 import { config } from "@/lib/config";
 import {
   uploadImageToIPFS,
@@ -117,6 +117,16 @@ export function useArtistListings(artistPublicKey: string | null) {
     setIsLoading(true);
     setError(null);
     try {
+      try {
+        const raw = await fetchArtistListings(artistPublicKey);
+        if (raw && raw.length >= 0) {
+          setListings(raw.sort((a: any, b: any) => b.created_at - a.created_at));
+          return;
+        }
+      } catch (e) {
+        console.warn("[indexer] useArtistListings fallback:", e);
+      }
+
       const ids = await getArtistListings(artistPublicKey);
       const resolved = await Promise.all(ids.map((id) => getListing(id)));
       setListings(resolved.sort((a, b) => b.created_at - a.created_at));
@@ -209,7 +219,7 @@ export function useCreateListing(artistPublicKey: string | null) {
         trackEvent.listingCreated(
           listingId,
           input.price.toString(),
-          token.code || "XLM",
+          token.symbol || "XLM",
         );
 
         setProgress("Listing created successfully!");
