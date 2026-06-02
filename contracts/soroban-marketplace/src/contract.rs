@@ -774,12 +774,26 @@ impl MarketplaceContract {
         artist.require_auth();
         let mut offer = load_offer(&env, offer_id)
             .unwrap_or_else(|| panic_with_error!(&env, MarketplaceError::OfferNotFound));
-        let mut listing = load_listing(&env, offer.listing_id)
-            .unwrap_or_else(|| panic_with_error!(&env, MarketplaceError::ListingNotFound));
+        let listing_id = offer.listing_id;
+
+        // Reentrancy guard (same listing lock as buy_artwork)
+        if !acquire_listing_lock(&env, listing_id) {
+            panic_with_error!(&env, MarketplaceError::ReentrancyGuard);
+        }
+
+        let mut listing = match load_listing(&env, listing_id) {
+            Some(l) => l,
+            None => {
+                release_listing_lock(&env, listing_id);
+                panic_with_error!(&env, MarketplaceError::ListingNotFound);
+            }
+        };
         if listing.artist != artist {
+            release_listing_lock(&env, listing_id);
             panic_with_error!(&env, MarketplaceError::Unauthorized);
         }
         if offer.status != OfferStatus::Pending || listing.status != ListingStatus::Active {
+            release_listing_lock(&env, listing_id);
             panic_with_error!(&env, MarketplaceError::OfferNotPending);
         }
         Self::distribute_payout(
@@ -826,6 +840,8 @@ impl MarketplaceContract {
                 }
             }
         }
+
+        release_listing_lock(&env, listing_id);
     }
 
     pub fn get_listing(env: Env, listing_id: u64) -> Listing {
