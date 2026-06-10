@@ -41,6 +41,10 @@ jest.mock('@/hooks/useTransientErrorToast', () => ({
   useTransientErrorToast: jest.fn(),
 }));
 
+jest.mock('@/lib/token-support', () => ({
+  assertSupportedTokenAddress: jest.fn().mockResolvedValue({ address: 'GTOKEN', symbol: 'XLM' }),
+}));
+
 import {
   useAuctions,
   useArtistAuctions,
@@ -155,6 +159,8 @@ describe('useArtistAuctions', () => {
   });
 
   it('fetches auctions for a given artist', async () => {
+    const { fetchAuctions } = jest.requireMock('@/lib/indexer');
+    fetchAuctions.mockRejectedValueOnce(new Error('indexer down'));
     mockGetArtistAuctions.mockResolvedValueOnce([10, 11]);
     mockGetAuction
       .mockResolvedValueOnce(makeAuction(10))
@@ -169,6 +175,8 @@ describe('useArtistAuctions', () => {
   });
 
   it('sets error when fetch fails', async () => {
+    const { fetchAuctions } = jest.requireMock('@/lib/indexer');
+    fetchAuctions.mockRejectedValueOnce(new Error('indexer down'));
     mockGetArtistAuctions.mockRejectedValueOnce(new Error('nope'));
 
     function Comp() {

@@ -16,19 +16,19 @@ fi
 source "$ENV_FILE"
 
 # 1. Build everything
-echo "Step 1/5  Building contracts..."
+echo "Step 1/6  Building contracts..."
 cd "$REPO_ROOT"
 cargo build --target wasm32v1-none --release -p soroban-launchpad -p collection-nft-erc721 -p collection-nft-erc1155 -p lazy-mint-erc721 -p lazy-mint-erc1155
 
 # 2. Optimize
-echo "Step 2/5  Optimizing WASM..."
+echo "Step 2/6  Optimizing WASM..."
 TARGET_DIR="$REPO_ROOT/target/wasm32v1-none/release"
 for WASM in soroban_launchpad collection_nft_erc721 collection_nft_erc1155 lazy_mint_erc721 lazy_mint_erc1155; do
   stellar contract optimize --wasm "$TARGET_DIR/$WASM.wasm" --wasm-out "$TARGET_DIR/$WASM.wasm" || true
 done
 
 # 3. Upload NFT WASMs
-echo "Step 3/5  Uploading NFT WASMs..."
+echo "Step 3/6  Uploading NFT WASMs..."
 upload_wasm() {
   stellar contract install \
     --wasm "$TARGET_DIR/$1.wasm" \
@@ -48,7 +48,7 @@ HASH_L1155=$(upload_wasm lazy_mint_erc1155)
 echo "  Lazy 1155 Hash:    $HASH_L1155"
 
 # 4. Deploy Launchpad
-echo "Step 4/5  Deploying Launchpad..."
+echo "Step 4/6  Deploying Launchpad..."
 LAUNCHPAD_ID=$(stellar contract deploy \
   --wasm "$TARGET_DIR/soroban_launchpad.wasm" \
   --source "$STELLAR_SECRET" \
@@ -58,7 +58,7 @@ LAUNCHPAD_ID=$(stellar contract deploy \
 echo "  Launchpad ID: $LAUNCHPAD_ID"
 
 # 5. Initialize Launchpad
-echo "Step 5/5  Initializing Launchpad..."
+echo "Step 5/6  Initializing Launchpad..."
 stellar contract invoke \
   --id "$LAUNCHPAD_ID" \
   --source "$STELLAR_SECRET" \
@@ -79,6 +79,29 @@ stellar contract invoke \
   --normal_1155 "$HASH_N1155" \
   --lazy_721 "$HASH_L721" \
   --lazy_1155 "$HASH_L1155"
+
+# 6. Update frontend .env.local
+echo "Step 6/6  Updating frontend .env.local..."
+FRONTEND_ENV="$REPO_ROOT/frontend/afristore-app/.env.local"
+
+update_env() {
+  local key=$1
+  local val=$2
+  if grep -q "^${key}=" "$FRONTEND_ENV"; then
+    sed "s|^${key}=.*|${key}=${val}|" "$FRONTEND_ENV" > "$FRONTEND_ENV.tmp"
+    mv "$FRONTEND_ENV.tmp" "$FRONTEND_ENV"
+  else
+    echo "${key}=${val}" >> "$FRONTEND_ENV"
+  fi
+}
+
+mkdir -p "$(dirname "$FRONTEND_ENV")"
+if [ ! -f "$FRONTEND_ENV" ]; then
+  echo "NEXT_PUBLIC_LAUNCHPAD_CONTRACT_ID=$LAUNCHPAD_ID" > "$FRONTEND_ENV"
+else
+  update_env "NEXT_PUBLIC_LAUNCHPAD_CONTRACT_ID" "$LAUNCHPAD_ID"
+fi
+echo "  Added NEXT_PUBLIC_LAUNCHPAD_CONTRACT_ID=$LAUNCHPAD_ID"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  ✓ Launchpad deployment complete!"

@@ -28,6 +28,7 @@ jest.mock('@/hooks/usePlaceBid', () => ({
 
 jest.mock('@/hooks/useOffers', () => ({
   useListingOffers: () => ({ offers: [], isLoading: false, refresh: jest.fn() }),
+  useMakeOffer: () => ({ make: jest.fn(), isOffering: false, error: null }),
 }))
 
 jest.mock('@/hooks/useUserActivity', () => ({
