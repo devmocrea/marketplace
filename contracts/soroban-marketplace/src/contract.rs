@@ -13,14 +13,14 @@ use crate::events::*;
 use crate::{
     storage::{
         acquire_auction_lock, acquire_listing_lock, add_artist_auction_id, add_artist_listing_id,
-        clear_pending_admin_storage, get_artist_auction_ids, get_artist_listing_ids,
-        get_listing_count, get_pending_admin_storage, increment_auction_count,
-        increment_listing_count, increment_offer_count, is_artist_revoked_storage, load_auction,
-        load_listing, load_listing_offers, load_offer, load_offerer_offers, release_auction_lock,
-        release_listing_lock, remove_artist_revocation_storage, save_auction, save_listing,
-        save_listing_offers, save_offer, save_offerer_offers, set_artist_revocation_storage,
-        set_pending_admin_storage, get_auction_count,
-        remove_from_active_listings, get_active_listing_ids, add_to_active_listings,
+        add_to_active_listings, clear_pending_admin_storage, get_active_listing_ids,
+        get_artist_auction_ids, get_artist_listing_ids, get_auction_count, get_listing_count,
+        get_pending_admin_storage, increment_auction_count, increment_listing_count,
+        increment_offer_count, is_artist_revoked_storage, load_auction, load_listing,
+        load_listing_offers, load_offer, load_offerer_offers, release_auction_lock,
+        release_listing_lock, remove_artist_revocation_storage, remove_from_active_listings,
+        save_auction, save_listing, save_listing_offers, save_offer, save_offerer_offers,
+        set_artist_revocation_storage, set_pending_admin_storage,
     },
     types::{
         Auction, AuctionStatus, Listing, ListingStatus, MarketplaceError, Offer, OfferStatus,
@@ -236,14 +236,14 @@ impl MarketplaceContract {
             panic_with_error!(&env, MarketplaceError::InvalidPrice);
         }
 
-                let recipients_len = recipients.len();
-                // Empty recipient arrays are an invalid split configuration; reject with InvalidSplit.
-                if recipients_len == 0 {
-                    panic_with_error!(&env, MarketplaceError::InvalidSplit);
-                }
-                if recipients_len > 4 {
-                    panic_with_error!(&env, MarketplaceError::TooManyRecipients);
-                }
+        let recipients_len = recipients.len();
+        // Empty recipient arrays are an invalid split configuration; reject with InvalidSplit.
+        if recipients_len == 0 {
+            panic_with_error!(&env, MarketplaceError::InvalidSplit);
+        }
+        if recipients_len > 4 {
+            panic_with_error!(&env, MarketplaceError::TooManyRecipients);
+        }
 
         let mut total_percentage = 0;
         for i in 0..recipients_len {
@@ -319,7 +319,6 @@ impl MarketplaceContract {
             }
         }
 
-
         if new_price <= 0 {
             panic_with_error!(&env, MarketplaceError::InvalidPrice);
         }
@@ -328,20 +327,19 @@ impl MarketplaceContract {
         }
 
         let new_recipients_len = new_recipients.len();
-                if new_recipients_len == 0 {
-                    panic_with_error!(&env, MarketplaceError::InvalidSplit);
+        if new_recipients_len == 0 {
+            panic_with_error!(&env, MarketplaceError::InvalidSplit);
         }
-                if new_recipients_len > 4 {
-                    panic_with_error!(&env, MarketplaceError::TooManyRecipients);
-                }
-                let mut total_pct = 0u32;
+        if new_recipients_len > 4 {
+            panic_with_error!(&env, MarketplaceError::TooManyRecipients);
+        }
+        let mut total_pct = 0u32;
         for i in 0..new_recipients_len {
             total_pct += new_recipients.get(i).unwrap().percentage;
         }
         if total_pct != 100 {
             panic_with_error!(&env, MarketplaceError::InvalidSplit);
         }
-
 
         listing.price = new_price;
         listing.token = new_token;
@@ -400,21 +398,21 @@ impl MarketplaceContract {
         }
 
         // Ensure token is still whitelisted at purchase time. If it was removed after listing creation, block the purchase.
-                if !Self::is_token_whitelisted(&env, &listing.token) {
-                    release_listing_lock(&env, listing_id);
-                    panic_with_error!(&env, MarketplaceError::TokenNotWhitelisted);
-                }
+        if !Self::is_token_whitelisted(&env, &listing.token) {
+            release_listing_lock(&env, listing_id);
+            panic_with_error!(&env, MarketplaceError::TokenNotWhitelisted);
+        }
 
-                Self::distribute_payout(
-                    &env,
-                    &listing.token,
-                    &listing.collection,
-                    listing.price,
-                    &listing.artist,
-                    &listing.recipients,
-                    &buyer,
-                    true,
-                );
+        Self::distribute_payout(
+            &env,
+            &listing.token,
+            &listing.collection,
+            listing.price,
+            &listing.artist,
+            &listing.recipients,
+            &buyer,
+            true,
+        );
 
         // Transfer the NFT
         env.invoke_contract::<()>(
@@ -531,7 +529,7 @@ impl MarketplaceContract {
         if !Self::is_token_whitelisted(&env, &token) {
             panic_with_error!(&env, MarketplaceError::Unauthorized);
         }
-                let auction_id = increment_auction_count(&env);
+        let auction_id = increment_auction_count(&env);
         let end_time = env.ledger().timestamp() + duration;
         let auction = Auction {
             auction_id,
@@ -642,7 +640,7 @@ impl MarketplaceContract {
                     winner,
                     false,
                 );
-                
+
                 // Transfer the NFT
                 env.invoke_contract::<()>(
                     &auction.collection,
@@ -655,7 +653,7 @@ impl MarketplaceContract {
                         auction.token_id.into_val(&env)
                     ],
                 );
-                
+
                 auction.status = AuctionStatus::Finalized;
                 (Some(winner.clone()), auction.highest_bid)
             } else {
@@ -828,7 +826,7 @@ impl MarketplaceContract {
             &offer.offerer,
             false,
         );
-        
+
         // Transfer the NFT
         env.invoke_contract::<()>(
             &listing.collection,
@@ -986,7 +984,7 @@ impl MarketplaceContract {
             token.transfer(buyer, &env.current_contract_address(), &amount);
         }
         let mut payout = amount;
-        
+
         let royalty_info: (Address, u32) = env.invoke_contract(
             collection_addr,
             &soroban_sdk::Symbol::new(env, "royalty_info"),

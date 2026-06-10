@@ -54,11 +54,9 @@ export async function collectMarketplaceEvents(
             contractIds,
           },
         ],
-        pagination: {
-          limit: EVENT_PAGE_LIMIT,
-          ...(paginationToken ? { cursor: paginationToken } : {}),
-        },
-      });
+        limit: EVENT_PAGE_LIMIT,
+        ...(paginationToken ? { cursor: paginationToken } : {}),
+      } as any);
 
       for (const event of response.events ?? []) {
         const decoded = decodeRpcEvent(event);

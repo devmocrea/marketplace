@@ -304,9 +304,11 @@ pub fn set_treasury_storage(env: &Env, addr: &Address) {
 pub fn get_treasury_storage(env: &Env) -> Option<Address> {
     let value = env.storage().persistent().get(&DataKey::Treasury);
     if value.is_some() {
-        env.storage()
-            .persistent()
-            .extend_ttl(&DataKey::Treasury, LEDGER_TTL_THRESHOLD, LEDGER_TTL_BUMP);
+        env.storage().persistent().extend_ttl(
+            &DataKey::Treasury,
+            LEDGER_TTL_THRESHOLD,
+            LEDGER_TTL_BUMP,
+        );
     }
     value
 }

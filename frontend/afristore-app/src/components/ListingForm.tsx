@@ -41,7 +41,7 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
   const { create, isCreating, progress: createProgress, error: createError } = useCreateListing(publicKey);
   const { update, isUpdating, progress: updateProgress, error: updateError } = useUpdateListing(publicKey);
 
-  const [preview, setPreview] = useState<string | null>(null);
+
   const [form, setForm] = useState({
     collectionAddress: "",
     nftTokenId: 0,
@@ -69,15 +69,12 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
         .then((meta) => {
           setCurrentMetadata(meta);
           setForm({
-            title: meta.title,
-            description: meta.description,
-            artistName: meta.artist,
-            year: meta.year,
-            category: meta.category || ART_CATEGORIES[0],
+            collectionAddress: listing.collection,
+            nftTokenId: Number(listing.token_id),
             price: parseFloat(stroopsToXlm(listing.price)),
             tokenAddress: listing.token,
           });
-          setPreview(cidToGatewayUrl(meta.image));
+
         })
         .finally(() => setIsFetchingMetadata(false));
     }
@@ -96,17 +93,7 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
     }
   }, [form.tokenAddress, isEdit, tokenOptions]);
 
-  const handleFile = (file: File) => {
-    setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-  };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) handleFile(file);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,8 +143,6 @@ export function ListingForm({ listing, onSuccess, onCancel }: ListingFormProps) 
                 <button
                 onClick={() => {
                     setSuccessId(null);
-                    setPreview(null);
-                    setSelectedFile(null);
                     setForm({
                       collectionAddress: "",
                       nftTokenId: 0,

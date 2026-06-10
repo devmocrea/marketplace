@@ -210,9 +210,9 @@ export default function ListingDetailPage({ id }: ListingClientProps) {
     // Formatted price
     const priceDisplay = listing ? stroopsToXlm(listing.price) : auction ? stroopsToXlm(auction.highest_bid || auction.reserve_price) : "0";
 
-    // Royalty info
-    const royaltyBps = listing?.royalty_bps || auction?.royalty_bps || 0;
-    const royaltyPercent = (royaltyBps / 100).toFixed(1);
+    // Royalty info (now handled by the collection contract)
+    const royaltyBps = 0;
+    const royaltyPercent = "0.0";
 
     return (
         <div className="min-h-screen bg-midnight-950 text-white pb-20 pt-24 px-4 sm:px-6 lg:px-8">

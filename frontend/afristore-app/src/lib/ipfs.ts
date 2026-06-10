@@ -85,7 +85,10 @@ export async function uploadMetadataToIPFS(
  * Fetches and parses artwork metadata JSON from IPFS.
  * `cid` can be a raw CID string or an "ipfs://CID" URI.
  */
-export async function fetchMetadata(cid: string): Promise<ArtworkMetadata> {
+export async function fetchMetadata(cid?: string): Promise<ArtworkMetadata> {
+  if (!cid) {
+    return { title: "Unknown Artwork", description: "", artist: "Unknown", image: "", year: "", category: "" };
+  }
   const cleanCid = cid.replace("ipfs://", "").trim();
   const url = `${config.pinataGateway}/ipfs/${cleanCid}`;
   const res = await axios.get<ArtworkMetadata>(url);

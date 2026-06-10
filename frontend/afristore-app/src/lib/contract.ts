@@ -45,7 +45,9 @@ export interface Recipient {
 export interface Listing {
   listing_id: number;
   artist: string;
-  metadata_cid: string;
+  metadata_cid?: string;
+  collection: string;
+  token_id: number;
   price: bigint;
   currency: string;
   token: string;
@@ -53,8 +55,6 @@ export interface Listing {
   status: ListingStatus;
   owner: string | null;
   created_at: number;
-  original_creator: string;
-  royalty_bps: number;
 }
 
 export type AuctionStatus = "Active" | "Finalized" | "Cancelled";
@@ -62,7 +62,9 @@ export type AuctionStatus = "Active" | "Finalized" | "Cancelled";
 export interface Auction {
   auction_id: number;
   creator: string;
-  metadata_cid: string;
+  metadata_cid?: string;
+  collection: string;
+  token_id: number;
   token: string;
   reserve_price: bigint;
   highest_bid: bigint;
@@ -70,8 +72,7 @@ export interface Auction {
   end_time: number;
   status: AuctionStatus;
   recipients: Recipient[];
-  royalty_bps: number;
-  original_creator: string;
+  created_at: number;
 }
 
 // ── Soroban RPC server ────────────────────────────────────────
@@ -204,16 +205,15 @@ function parseListingFromScVal(raw: unknown): Listing {
   return {
     listing_id: Number(obj["listing_id"]),
     artist: (obj["artist"] as Address).toString(),
-    metadata_cid: Buffer.from(obj["metadata_cid"] as Uint8Array).toString("utf-8"),
+    collection: (obj["collection"] as any).toString(),
+    token_id: Number(obj["nft_token_id"]),
     price: BigInt(obj["price"] as bigint),
     currency: String(obj["currency"]),
-    token: (obj["token"] as Address).toString(),
+    token: (obj["token"] as any).toString(),
     recipients: (obj["recipients"] as any[]).map(parseRecipient),
     status: String(obj["status"]) as ListingStatus,
-    owner: obj["owner"] ? (obj["owner"] as Address).toString() : null,
+    owner: obj["owner"] ? (obj["owner"] as any).toString() : null,
     created_at: Number(obj["created_at"]),
-    original_creator: (obj["original_creator"] as Address).toString(),
-    royalty_bps: Number(obj["royalty_bps"]),
   };
 }
 
@@ -223,16 +223,16 @@ function parseAuctionFromScVal(raw: unknown): Auction {
   return {
     auction_id: Number(obj["auction_id"]),
     creator: (obj["creator"] as Address).toString(),
-    metadata_cid: Buffer.from(obj["metadata_cid"] as Uint8Array).toString("utf-8"),
-    token: (obj["token"] as Address).toString(),
+    collection: (obj["collection"] as any).toString(),
+    token_id: Number(obj["nft_token_id"]),
+    token: (obj["token"] as any).toString(),
     reserve_price: BigInt(obj["reserve_price"] as bigint),
     highest_bid: BigInt(obj["highest_bid"] as bigint),
-    highest_bidder: obj["highest_bidder"] ? (obj["highest_bidder"] as Address).toString() : null,
+    highest_bidder: obj["highest_bidder"] ? (obj["highest_bidder"] as any).toString() : null,
     end_time: Number(obj["end_time"]),
     status: String(obj["status"]) as AuctionStatus,
     recipients: (obj["recipients"] as any[]).map(parseRecipient),
-    royalty_bps: Number(obj["royalty_bps"]),
-    original_creator: (obj["original_creator"] as Address).toString(),
+    created_at: Number(obj["created_at"] || 0),
   };
 }
 

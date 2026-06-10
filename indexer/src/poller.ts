@@ -324,11 +324,11 @@ export async function applyDecodedEvents(decodedEvents: any[], tx: any) {
     : [];
 
   const existingSet = new Set(
-    existing.map((event) => `${event.listingId ?? 'null'}|${event.eventType}|${event.ledgerSequence}`)
+    existing.map((event: any) => `${event.listingId ?? 'null'}|${event.eventType}|${event.ledgerSequence}`)
   );
 
   const toInsert = decodedEvents.filter(
-    (event) => !existingSet.has(`${event.listingId ?? 'null'}|${event.eventType}|${event.ledgerSequence}`)
+    (event: any) => !existingSet.has(`${event.listingId ?? 'null'}|${event.eventType}|${event.ledgerSequence}`)
   );
 
   if (toInsert.length > 0) {

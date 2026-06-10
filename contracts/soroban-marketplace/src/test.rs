@@ -9,15 +9,34 @@ mod mock_nft {
     impl MockNft {
         pub fn royalty_info(env: Env) -> (Address, u32) {
             use soroban_sdk::testutils::Address as _;
-            let bps: u32 = env.storage().instance().get(&soroban_sdk::symbol_short!("bps")).unwrap_or(0);
-            let recv: Address = env.storage().instance().get(&soroban_sdk::symbol_short!("recv")).unwrap_or_else(|| Address::generate(&env));
+            let bps: u32 = env
+                .storage()
+                .instance()
+                .get(&soroban_sdk::symbol_short!("bps"))
+                .unwrap_or(0);
+            let recv: Address = env
+                .storage()
+                .instance()
+                .get(&soroban_sdk::symbol_short!("recv"))
+                .unwrap_or_else(|| Address::generate(&env));
             (recv, bps)
         }
         pub fn set_royalty(env: Env, recv: Address, bps: u32) {
-            env.storage().instance().set(&soroban_sdk::symbol_short!("recv"), &recv);
-            env.storage().instance().set(&soroban_sdk::symbol_short!("bps"), &bps);
+            env.storage()
+                .instance()
+                .set(&soroban_sdk::symbol_short!("recv"), &recv);
+            env.storage()
+                .instance()
+                .set(&soroban_sdk::symbol_short!("bps"), &bps);
         }
-        pub fn transfer_from(_env: Env, _spender: Address, _from: Address, _to: Address, _token_id: u64) {}
+        pub fn transfer_from(
+            _env: Env,
+            _spender: Address,
+            _from: Address,
+            _to: Address,
+            _token_id: u64,
+        ) {
+        }
     }
 }
 
@@ -62,7 +81,15 @@ fn setup() -> (
     sac.mint(&contract_id, &100_000_000_000_i128);
 
     let collection_id = env.register(mock_nft::MockNft, ());
-    (env, client, artist, buyer, token_id, contract_id, collection_id)
+    (
+        env,
+        client,
+        artist,
+        buyer,
+        token_id,
+        contract_id,
+        collection_id,
+    )
 }
 
 fn valid_recipients(env: &Env, artist: &Address) -> soroban_sdk::Vec<Recipient> {
@@ -413,13 +440,7 @@ fn test_update_listing_empty_cid() {
     );
 
     let new_rec = valid_recipients(&env, &artist);
-    client.update_listing(
-        &artist,
-        &id,
-        &10_000_000_i128,
-        &token_id,
-        &new_rec,
-    );
+    client.update_listing(&artist, &id, &10_000_000_i128, &token_id, &new_rec);
 }
 
 #[test]
@@ -465,13 +486,7 @@ fn test_update_listing_not_active() {
 
     let new_cid = bytes!(&env, 0x51);
     let new_rec = valid_recipients(&env, &artist);
-    client.update_listing(
-        &artist,
-        &id,
-        &10_000_000_i128,
-        &token_id,
-        &new_rec,
-    );
+    client.update_listing(&artist, &id, &10_000_000_i128, &token_id, &new_rec);
 }
 
 #[test]
@@ -542,13 +557,7 @@ fn test_update_listing_fails_with_pending_offers() {
     // Try to update while offer is pending
     let new_cid = bytes!(&env, 0x51);
     let new_rec = valid_recipients(&env, &artist);
-    client.update_listing(
-        &artist,
-        &listing_id,
-        &10_000_000_i128,
-        &token_id,
-        &new_rec,
-    );
+    client.update_listing(&artist, &listing_id, &10_000_000_i128, &token_id, &new_rec);
 }
 
 // ── get_artist_listings ──────────────────────────────────────
@@ -1464,13 +1473,7 @@ fn test_update_listing_success_with_recipients() {
         },
     ];
 
-    client.update_listing(
-        &artist,
-        &id,
-        &15_000_000,
-        &token_id,
-        &new_recipients,
-    );
+    client.update_listing(&artist, &id, &15_000_000, &token_id, &new_recipients);
 
     let listing = client.get_listing(&id);
     assert_eq!(listing.price, 15_000_000);
@@ -1530,13 +1533,7 @@ fn test_update_listing_invalid_split_fails() {
             percentage: 50, // does not sum to 100
         },
     ];
-    client.update_listing(
-        &artist,
-        &id,
-        &10_000_000,
-        &token_id,
-        &bad_recipients,
-    );
+    client.update_listing(&artist, &id, &10_000_000, &token_id, &bad_recipients);
 }
 
 #[test]
@@ -1569,13 +1566,7 @@ fn test_update_listing_too_many_recipients_fails() {
             percentage: 20,
         },
     ];
-    client.update_listing(
-        &artist,
-        &id,
-        &10_000_000,
-        &token_id,
-        &too_many,
-    );
+    client.update_listing(&artist, &id, &10_000_000, &token_id, &too_many);
 }
 
 #[test]
@@ -2403,10 +2394,16 @@ fn test_admin_pause_and_unpause_state_transitions() {
     assert!(!client.is_paused(), "contract should start unpaused");
 
     client.admin_pause(&artist);
-    assert!(client.is_paused(), "contract should be paused after admin_pause");
+    assert!(
+        client.is_paused(),
+        "contract should be paused after admin_pause"
+    );
 
     client.admin_unpause(&artist);
-    assert!(!client.is_paused(), "contract should be unpaused after admin_unpause");
+    assert!(
+        !client.is_paused(),
+        "contract should be unpaused after admin_unpause"
+    );
 }
 
 #[test]

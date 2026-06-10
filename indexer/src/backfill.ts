@@ -111,7 +111,7 @@ export async function runBackfill() {
   });
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && process.argv[1].includes('backfill')) {
   runBackfill().catch((err) => {
     console.error({ msg: 'Backfill failed', err: err instanceof Error ? err.message : String(err) });
     process.exit(1);

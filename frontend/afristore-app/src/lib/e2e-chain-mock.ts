@@ -34,17 +34,18 @@ export function registerE2eMockListingsOnWindow(): void {
 
 export function e2eMockCreateListing(
   artistPublicKey: string,
-  metadataCid: string,
   price: number,
   tokenAddress: string = DEFAULT_TOKEN.address,
-  royaltyBps: number = 0
+  collectionAddress: string,
+  nftTokenId: number
 ): number {
   const id = nextListingId++;
   const priceStroops = BigInt(Math.round(price * 10_000_000));
   listings.set(id, {
     listing_id: id,
     artist: artistPublicKey,
-    metadata_cid: metadataCid,
+    collection: collectionAddress,
+    token_id: nftTokenId,
     price: priceStroops,
     currency: DEFAULT_TOKEN.symbol,
     token: tokenAddress,
@@ -52,8 +53,6 @@ export function e2eMockCreateListing(
     status: "Active",
     owner: null,
     created_at: Math.floor(Date.now() / 1000),
-    original_creator: artistPublicKey,
-    royalty_bps: royaltyBps,
   });
   return id;
 }
