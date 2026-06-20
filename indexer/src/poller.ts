@@ -326,7 +326,9 @@ async function fetchTokenUri(collectionId: string, tokenId: bigint): Promise<str
     const simResult = await rpcServer.simulateTransaction(tx);
     if (rpc.Api.isSimulationSuccess(simResult)) {
       const retVal = simResult.result?.retval;
-      return scValToNative(retVal)?.toString() || null;
+      if (retVal) {
+        return scValToNative(retVal)?.toString() || null;
+      }
     }
   } catch (err) {
     console.error(`Failed to fetch token URI for collection ${collectionId} token ${tokenId}:`, err);
