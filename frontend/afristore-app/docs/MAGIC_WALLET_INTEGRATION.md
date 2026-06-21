@@ -17,7 +17,9 @@ This document describes the implementation of Magic.link wallet abstraction for 
 ### Components
 
 #### 1. **Magic Library** (`src/lib/magic.ts`)
+
 Core Magic SDK integration providing:
+
 - `getMagicInstance()`: Singleton Magic instance
 - `loginWithMagicLink(email)`: Email-based authentication
 - `loginWithPasskey()`: Biometric authentication
@@ -26,7 +28,9 @@ Core Magic SDK integration providing:
 - `signWithMagic(txXdr)`: Sign Stellar transactions
 
 #### 2. **useMagicWallet Hook** (`src/hooks/useMagicWallet.ts`)
+
 React hook managing Magic wallet state:
+
 - `status`: Connection state (NOT_INITIALIZED, DISCONNECTED, CONNECTING, CONNECTED, ERROR)
 - `email`: User's email address
 - `publicAddress`: Stellar public key
@@ -36,14 +40,18 @@ React hook managing Magic wallet state:
 - `refresh()`: Check login status
 
 #### 3. **MagicWalletModal** (`src/components/MagicWalletModal.tsx`)
+
 UI component for Magic wallet onboarding:
+
 - Email input form with magic link flow
 - Passkey authentication button
 - Success confirmation screen
 - Error handling and user feedback
 
 #### 4. **Updated ConnectWalletModal** (`src/components/ConnectWalletModal.tsx`)
+
 Enhanced wallet selection modal now includes:
+
 - Freighter Wallet (existing)
 - Magic Wallet (new)
 - Seamless switching between wallet types
@@ -82,6 +90,7 @@ npm install magic-sdk @magic-sdk/admin
 ### 4. Test Integration
 
 1. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -170,6 +179,7 @@ async function submitTransaction(txXdr: string) {
 ### Keypair Mapping
 
 Magic creates a unique Stellar keypair for each user:
+
 - **Public Key**: Derived from user's Magic account
 - **Private Key**: Securely stored in Magic's infrastructure
 - **Network**: Testnet or Mainnet (configurable)
@@ -207,7 +217,8 @@ npm run test
 
 **Error**: "Magic SDK not initialized. Please set NEXT_PUBLIC_MAGIC_API_KEY."
 
-**Solution**: 
+**Solution**:
+
 1. Verify `.env.local` has `NEXT_PUBLIC_MAGIC_API_KEY`
 2. Restart dev server after adding env var
 3. Check Magic Dashboard for correct API key
@@ -215,11 +226,13 @@ npm run test
 ### Email Link Not Received
 
 **Possible Causes**:
+
 - Email in spam folder
 - Typo in email address
 - Magic link expired (10 min timeout)
 
 **Solution**:
+
 - Check spam/promotions folder
 - Verify email address spelling
 - Request new magic link
@@ -229,6 +242,7 @@ npm run test
 **Cause**: Device doesn't support WebAuthn
 
 **Solution**:
+
 - Use email magic link instead
 - Update browser to latest version
 - Use supported device (most modern phones/laptops)
@@ -236,11 +250,13 @@ npm run test
 ### Transaction Signing Fails
 
 **Possible Causes**:
+
 - User rejected signing
 - Invalid transaction XDR
 - Network mismatch
 
 **Solution**:
+
 - Check transaction details
 - Verify network configuration
 - Ensure user approves signing
@@ -264,6 +280,7 @@ npm run test
 ## Support
 
 For issues or questions:
+
 1. Check Magic Dashboard logs
 2. Review browser console for errors
 3. Consult Magic support: support@magic.link

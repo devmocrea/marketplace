@@ -13,8 +13,9 @@ export default function CollectionsDirectoryPage() {
   const [kindFilter, setKindFilter] = useState<CollectionKind | "All">("All");
 
   const filtered = collections.filter((c) => {
-    const matchesSearch = c.address.toLowerCase().includes(search.toLowerCase()) || 
-                          c.creator.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch =
+      c.address.toLowerCase().includes(search.toLowerCase()) ||
+      c.creator.toLowerCase().includes(search.toLowerCase());
     const matchesKind = kindFilter === "All" || c.kind === kindFilter;
     return matchesSearch && matchesKind;
   });
@@ -35,7 +36,8 @@ export default function CollectionsDirectoryPage() {
                   Launched Collections
                 </h1>
                 <p className="text-gray-500 max-w-2xl font-inter text-lg">
-                  Discover and mint from the latest verified collections deployed on the Afristore Launchpad.
+                  Discover and mint from the latest verified collections
+                  deployed on the Afristore Launchpad.
                 </p>
               </div>
               <Link
@@ -50,7 +52,10 @@ export default function CollectionsDirectoryPage() {
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 mb-10">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Search by address or creator…"
@@ -78,7 +83,9 @@ export default function CollectionsDirectoryPage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 size={48} className="animate-spin text-brand-500" />
-              <p className="text-gray-500 font-medium font-inter">Loading collections from the ledger…</p>
+              <p className="text-gray-500 font-medium font-inter">
+                Loading collections from the ledger…
+              </p>
             </div>
           ) : error ? (
             <div className="rounded-3xl bg-red-50 p-12 text-center border border-red-100">
@@ -92,7 +99,9 @@ export default function CollectionsDirectoryPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="rounded-3xl bg-white p-20 text-center border border-gray-100 shadow-sm">
-              <p className="text-gray-400 text-lg font-inter">No collections found matching your filters.</p>
+              <p className="text-gray-400 text-lg font-inter">
+                No collections found matching your filters.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -102,9 +111,13 @@ export default function CollectionsDirectoryPage() {
                   className="group bg-white rounded-3xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:shadow-brand-900/5 transition-all hover:-translate-y-1"
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase ${
-                      c.kind.startsWith('Lazy') ? 'bg-amber-100 text-amber-700' : 'bg-brand-100 text-brand-700'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase ${
+                        c.kind.startsWith("Lazy")
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-brand-100 text-brand-700"
+                      }`}
+                    >
                       {c.kind}
                     </span>
                     <Link
@@ -114,7 +127,10 @@ export default function CollectionsDirectoryPage() {
                       <ExternalLink size={20} />
                     </Link>
                   </div>
-                  <h3 className="text-xl font-display font-bold text-gray-900 mb-2 truncate" title={c.address}>
+                  <h3
+                    className="text-xl font-display font-bold text-gray-900 mb-2 truncate"
+                    title={c.address}
+                  >
                     {c.address.slice(0, 8)}...{c.address.slice(-8)}
                   </h3>
                   <div className="space-y-3">

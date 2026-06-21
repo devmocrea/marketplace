@@ -4,9 +4,13 @@ import { render, screen, waitFor } from "@testing-library/react";
 
 jest.mock("next/link", () => ({
   __esModule: true,
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
 jest.mock("next/image", () => ({
@@ -17,7 +21,7 @@ jest.mock("next/image", () => ({
       unoptimized?: boolean;
       priority?: boolean;
       quality?: number;
-    }
+    },
   ) => {
     const {
       fill: _fill,
@@ -83,16 +87,24 @@ describe("FeaturedListings", () => {
 
     render(<FeaturedListings />);
 
-    expect(screen.getByText("No live featured listings yet")).toBeInTheDocument();
+    expect(
+      screen.getByText("No live featured listings yet"),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Ndebele Geometry")).not.toBeInTheDocument();
-    expect(screen.queryByText("Maasai Beadwork Essence")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Maasai Beadwork Essence"),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps navigation disabled when fewer than three live listings are available", async () => {
     mockUseMarketplace.mockReturnValue({
       listings: [
         makeListing({ listing_id: 1, metadata_cid: "QmOne" }),
-        makeListing({ listing_id: 2, metadata_cid: "QmTwo", price: 20_000_000n }),
+        makeListing({
+          listing_id: 2,
+          metadata_cid: "QmTwo",
+          price: 20_000_000n,
+        }),
       ],
       isLoading: false,
       error: null,
@@ -125,7 +137,7 @@ describe("FeaturedListings", () => {
       .getAllByRole("link")
       .filter((link) => link.getAttribute("href")?.startsWith("/listings/"));
     const uniqueListingLinks = new Set(
-      listingLinks.map((link) => link.getAttribute("href"))
+      listingLinks.map((link) => link.getAttribute("href")),
     );
     expect(uniqueListingLinks).toEqual(new Set(["/listings/1", "/listings/2"]));
   });

@@ -15,12 +15,16 @@ import { useTransientErrorToast } from "./useTransientErrorToast";
  * Makes 1 API call instead of N contract calls.
  * Falls back to on-chain scan only if the indexer is unreachable.
  */
-export function useMarketplaceFromIndexer(opts?: { status?: string; limit?: number; offset?: number }) {
+export function useMarketplaceFromIndexer(opts?: {
+  status?: string;
+  limit?: number;
+  offset?: number;
+}) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState<number | null>(null);
-  
+
   useTransientErrorToast(error);
 
   const refresh = useCallback(async () => {
@@ -34,7 +38,7 @@ export function useMarketplaceFromIndexer(opts?: { status?: string; limit?: numb
           limit: opts?.limit || 100,
           offset: opts?.offset || 0,
         });
-        
+
         if (res.listings && res.listings.length >= 0) {
           setListings(res.listings as Listing[]);
           setTotal(res.total ?? res.listings.length);
@@ -46,18 +50,19 @@ export function useMarketplaceFromIndexer(opts?: { status?: string; limit?: numb
 
       // Step 2: Fallback to on-chain scan (N CONTRACT CALLS — backup only)
       const all = await getAllListings();
-      
+
       // Basic filtering to match indexer options if needed
       let filtered = all;
       if (opts?.status) {
-        filtered = all.filter(l => l.status === opts.status);
+        filtered = all.filter((l) => l.status === opts.status);
       }
-      
+
       setListings(filtered);
       setTotal(filtered.length);
-      
     } catch (err: unknown) {
-      setError(getReadableErrorMessage(err, "Failed to load marketplace listings"));
+      setError(
+        getReadableErrorMessage(err, "Failed to load marketplace listings"),
+      );
     } finally {
       setIsLoading(false);
     }

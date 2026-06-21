@@ -2,7 +2,11 @@
 
 import { createContext, useContext, ReactNode, useMemo } from "react";
 import { useWallet, WalletState, WalletStatus } from "@/hooks/useWallet";
-import { useMagicWallet, MagicWalletState, MagicWalletStatus } from "@/hooks/useMagicWallet";
+import {
+  useMagicWallet,
+  MagicWalletState,
+  MagicWalletStatus,
+} from "@/hooks/useMagicWallet";
 
 export type WalletType = "freighter" | "magic" | null;
 
@@ -37,28 +41,33 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const publicKey = freighter.publicKey ?? magic.publicAddress ?? null;
 
-  const status: UnifiedWalletState['status'] = freighter.isConnected || (!magic.isConnected && freighter.status !== "DISCONNECTED")
-    ? freighter.status
-    : magic.isConnected
-      ? "MAGIC_CONNECTED"
-      : "DISCONNECTED";
+  const status: UnifiedWalletState["status"] =
+    freighter.isConnected ||
+    (!magic.isConnected && freighter.status !== "DISCONNECTED")
+      ? freighter.status
+      : magic.isConnected
+        ? "MAGIC_CONNECTED"
+        : "DISCONNECTED";
 
-  const value = useMemo(() => ({
-    walletType,
-    publicKey,
-    isConnected: freighter.isConnected || magic.isConnected,
-    isConnecting: freighter.isConnecting || magic.isConnecting,
-    isWrongNetwork: freighter.isWrongNetwork,
-    networkPassphrase: freighter.networkPassphrase,
-    isInstalled: freighter.isInstalled,
-    error: freighter.error ?? magic.error,
-    status,
-    connect: freighter.connect,
-    disconnect: freighter.disconnect,
-    refresh: freighter.refresh,
-    freighter,
-    magic,
-  }), [walletType, publicKey, status, freighter, magic]);
+  const value = useMemo(
+    () => ({
+      walletType,
+      publicKey,
+      isConnected: freighter.isConnected || magic.isConnected,
+      isConnecting: freighter.isConnecting || magic.isConnecting,
+      isWrongNetwork: freighter.isWrongNetwork,
+      networkPassphrase: freighter.networkPassphrase,
+      isInstalled: freighter.isInstalled,
+      error: freighter.error ?? magic.error,
+      status,
+      connect: freighter.connect,
+      disconnect: freighter.disconnect,
+      refresh: freighter.refresh,
+      freighter,
+      magic,
+    }),
+    [walletType, publicKey, status, freighter, magic],
+  );
 
   return (
     <WalletContext.Provider value={value}>{children}</WalletContext.Provider>

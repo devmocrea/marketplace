@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     if (!body.metadata) {
       return NextResponse.json(
         { error: "Missing metadata payload." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       const resBody = await pinataRes.text();
       return NextResponse.json(
         { error: `Pinata metadata upload failed: ${resBody}` },
-        { status: 502 }
+        { status: 502 },
       );
     }
 

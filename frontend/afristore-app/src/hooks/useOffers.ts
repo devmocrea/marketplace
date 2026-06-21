@@ -53,7 +53,7 @@ export function useOffererOffers(publicKey: string | null) {
           } catch {
             return { ...offer };
           }
-        })
+        }),
       );
 
       setOffers(enriched.sort((a, b) => b.created_at - a.created_at));
@@ -125,7 +125,7 @@ export function useIncomingOffers(ownerPublicKey: string | null) {
     try {
       const listingIds = await getArtistListings(ownerPublicKey);
       const listings = await Promise.all(
-        listingIds.map((id) => getListing(id))
+        listingIds.map((id) => getListing(id)),
       );
 
       const result: Array<{ listing: Listing; offers: Offer[] }> = [];
@@ -138,7 +138,7 @@ export function useIncomingOffers(ownerPublicKey: string | null) {
           try {
             const offerIds = await getListingOffers(listing.listing_id);
             const offers = await Promise.all(
-              offerIds.map((id) => getOffer(id))
+              offerIds.map((id) => getOffer(id)),
             );
             result.push({
               listing,
@@ -147,7 +147,7 @@ export function useIncomingOffers(ownerPublicKey: string | null) {
           } catch {
             // Skip listings whose offers fail to load.
           }
-        })
+        }),
       );
 
       setOffersByListing(result);
@@ -190,7 +190,7 @@ export function useWithdrawOffer(publicKey: string | null) {
         setIsWithdrawing(false);
       }
     },
-    [publicKey]
+    [publicKey],
   );
 
   return { withdraw, isWithdrawing, error };
@@ -221,7 +221,7 @@ export function useAcceptOffer(publicKey: string | null) {
         setIsAccepting(false);
       }
     },
-    [publicKey]
+    [publicKey],
   );
 
   return { accept, isAccepting, error };
@@ -252,7 +252,7 @@ export function useRejectOffer(publicKey: string | null) {
         setIsRejecting(false);
       }
     },
-    [publicKey]
+    [publicKey],
   );
 
   return { reject, isRejecting, error };
@@ -266,7 +266,11 @@ export function useMakeOffer(publicKey: string | null) {
   useTransientErrorToast(error);
 
   const make = useCallback(
-    async (listingId: number, amountXlm: number, tokenAddress: string): Promise<boolean> => {
+    async (
+      listingId: number,
+      amountXlm: number,
+      tokenAddress: string,
+    ): Promise<boolean> => {
       if (!publicKey) {
         setError("Wallet not connected");
         return false;
@@ -283,9 +287,8 @@ export function useMakeOffer(publicKey: string | null) {
         setIsOffering(false);
       }
     },
-    [publicKey]
+    [publicKey],
   );
 
   return { make, isOffering, error };
 }
-

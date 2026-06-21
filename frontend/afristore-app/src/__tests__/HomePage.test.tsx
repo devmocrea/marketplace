@@ -1,6 +1,6 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import HomePage from '../app/page';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import HomePage from "../app/page";
 
 // Mock intersection observer
 class MockIntersectionObserver {
@@ -9,7 +9,7 @@ class MockIntersectionObserver {
   unobserve = jest.fn();
 }
 
-Object.defineProperty(window, 'IntersectionObserver', {
+Object.defineProperty(window, "IntersectionObserver", {
   writable: true,
   configurable: true,
   value: MockIntersectionObserver,
@@ -17,7 +17,7 @@ Object.defineProperty(window, 'IntersectionObserver', {
 
 // Mock next/navigation
 const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({
+jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
@@ -26,7 +26,7 @@ const mockConnect = jest.fn();
 let mockIsConnected = false;
 let mockIsConnecting = false;
 
-jest.mock('@/context/WalletContext', () => ({
+jest.mock("@/context/WalletContext", () => ({
   useWalletContext: () => ({
     isConnected: mockIsConnected,
     isConnecting: mockIsConnecting,
@@ -35,46 +35,50 @@ jest.mock('@/context/WalletContext', () => ({
 }));
 
 // Mock next/image
-jest.mock('next/image', () => ({
+jest.mock("next/image", () => ({
   __esModule: true,
   default: (props: any) => <img {...props} />,
 }));
 
 // Mock components
-jest.mock('@/components/FeaturedListings', () => ({
+jest.mock("@/components/FeaturedListings", () => ({
   FeaturedListings: () => <div data-testid="featured-listings"></div>,
 }));
 
-describe('HomePage', () => {
+describe("HomePage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('calls connect when disconnected CTA is clicked', () => {
+  it("calls connect when disconnected CTA is clicked", () => {
     mockIsConnected = false;
     mockIsConnecting = false;
-    
+
     render(<HomePage />);
-    
-    const ctas = screen.getAllByRole('button', { name: /get started|connect wallet & start/i });
+
+    const ctas = screen.getAllByRole("button", {
+      name: /get started|connect wallet & start/i,
+    });
     expect(ctas.length).toBeGreaterThan(0);
-    
+
     fireEvent.click(ctas[0]);
     expect(mockConnect).toHaveBeenCalledTimes(1);
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('routes to /explore when connected CTA is clicked', () => {
+  it("routes to /explore when connected CTA is clicked", () => {
     mockIsConnected = true;
     mockIsConnecting = false;
-    
+
     render(<HomePage />);
-    
-    const ctas = screen.getAllByRole('button', { name: /explore marketplace|go to marketplace/i });
+
+    const ctas = screen.getAllByRole("button", {
+      name: /explore marketplace|go to marketplace/i,
+    });
     expect(ctas.length).toBeGreaterThan(0);
-    
+
     fireEvent.click(ctas[0]);
-    expect(mockPush).toHaveBeenCalledWith('/explore');
+    expect(mockPush).toHaveBeenCalledWith("/explore");
     expect(mockConnect).not.toHaveBeenCalled();
   });
 });

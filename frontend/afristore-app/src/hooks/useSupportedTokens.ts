@@ -18,7 +18,9 @@ export function useSupportedTokens() {
       setTokens(supportedTokens);
     } catch (err: unknown) {
       setTokens(SUPPORTED_TOKENS);
-      setError(err instanceof Error ? err.message : "Failed to load supported tokens");
+      setError(
+        err instanceof Error ? err.message : "Failed to load supported tokens",
+      );
     } finally {
       setIsLoading(false);
     }

@@ -37,7 +37,7 @@ export function e2eMockCreateListing(
   price: number,
   tokenAddress: string = DEFAULT_TOKEN.address,
   collectionAddress: string,
-  nftTokenId: number
+  nftTokenId: number,
 ): number {
   const id = nextListingId++;
   const priceStroops = BigInt(Math.round(price * 10_000_000));
@@ -57,7 +57,10 @@ export function e2eMockCreateListing(
   return id;
 }
 
-export function e2eMockBuyArtwork(buyerPublicKey: string, listingId: number): boolean {
+export function e2eMockBuyArtwork(
+  buyerPublicKey: string,
+  listingId: number,
+): boolean {
   const listing = listings.get(listingId);
   if (!listing || listing.status !== "Active") {
     throw new Error("Listing is not available for purchase.");

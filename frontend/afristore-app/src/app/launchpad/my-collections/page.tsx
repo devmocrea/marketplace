@@ -5,16 +5,28 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { useCreatorCollections } from "@/hooks/useLaunchpad";
 import { useWalletContext } from "@/context/WalletContext";
-import { Loader2, Search, Filter, ExternalLink, Plus, Palette, Crown, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  Search,
+  Filter,
+  ExternalLink,
+  Plus,
+  Palette,
+  Crown,
+  AlertCircle,
+} from "lucide-react";
 
 export default function MyCollectionsPage() {
   const { publicKey, isConnected } = useWalletContext();
-  const { collections, isLoading, error, refresh } = useCreatorCollections(publicKey);
+  const { collections, isLoading, error, refresh } =
+    useCreatorCollections(publicKey);
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<string>("All");
 
   const filtered = collections.filter((c) => {
-    const matchesSearch = c.address.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = c.address
+      .toLowerCase()
+      .includes(search.toLowerCase());
     const matchesKind = kindFilter === "All" || c.kind === kindFilter;
     return matchesSearch && matchesKind;
   });
@@ -34,10 +46,13 @@ export default function MyCollectionsPage() {
                 My Collections
               </h1>
               <p className="text-gray-500 max-w-2xl text-center font-inter text-lg">
-                Connect your wallet to view and manage the NFT collections you&apos;ve created on the Afristore Launchpad.
+                Connect your wallet to view and manage the NFT collections
+                you&apos;ve created on the Afristore Launchpad.
               </p>
               <div className="text-center">
-                <p className="text-sm text-gray-400 mb-4">Please connect your wallet to continue</p>
+                <p className="text-sm text-gray-400 mb-4">
+                  Please connect your wallet to continue
+                </p>
               </div>
             </div>
           </div>
@@ -62,7 +77,8 @@ export default function MyCollectionsPage() {
                   Your Created Collections
                 </h1>
                 <p className="text-gray-500 max-w-2xl font-inter text-lg">
-                  Manage and monitor the NFT collections you&apos;ve deployed on the Afristore Launchpad.
+                  Manage and monitor the NFT collections you&apos;ve deployed on
+                  the Afristore Launchpad.
                 </p>
               </div>
               <Link
@@ -85,7 +101,9 @@ export default function MyCollectionsPage() {
                   <p className="text-2xl font-display font-black text-gray-900">
                     {collections.length}
                   </p>
-                  <p className="text-gray-500 font-inter text-sm">Total Collections</p>
+                  <p className="text-gray-500 font-inter text-sm">
+                    Total Collections
+                  </p>
                 </div>
               </div>
             </div>
@@ -97,9 +115,11 @@ export default function MyCollectionsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-display font-black text-gray-900">
-                    {collections.filter(c => c.kind.includes('721')).length}
+                    {collections.filter((c) => c.kind.includes("721")).length}
                   </p>
-                  <p className="text-gray-500 font-inter text-sm">ERC-721 Collections</p>
+                  <p className="text-gray-500 font-inter text-sm">
+                    ERC-721 Collections
+                  </p>
                 </div>
               </div>
             </div>
@@ -111,9 +131,11 @@ export default function MyCollectionsPage() {
                 </div>
                 <div>
                   <p className="text-2xl font-display font-black text-gray-900">
-                    {collections.filter(c => c.kind.includes('1155')).length}
+                    {collections.filter((c) => c.kind.includes("1155")).length}
                   </p>
-                  <p className="text-gray-500 font-inter text-sm">ERC-1155 Collections</p>
+                  <p className="text-gray-500 font-inter text-sm">
+                    ERC-1155 Collections
+                  </p>
                 </div>
               </div>
             </div>
@@ -122,7 +144,10 @@ export default function MyCollectionsPage() {
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 mb-10">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Search by collection address…"
@@ -150,7 +175,9 @@ export default function MyCollectionsPage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 size={48} className="animate-spin text-brand-500" />
-              <p className="text-gray-500 font-medium font-inter">Loading your collections from the ledger…</p>
+              <p className="text-gray-500 font-medium font-inter">
+                Loading your collections from the ledger…
+              </p>
             </div>
           ) : error ? (
             <div className="rounded-3xl bg-red-50 p-12 text-center border border-red-100">
@@ -170,13 +197,14 @@ export default function MyCollectionsPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
-                    {collections.length === 0 ? "No Collections Yet" : "No Matching Collections"}
+                    {collections.length === 0
+                      ? "No Collections Yet"
+                      : "No Matching Collections"}
                   </h3>
                   <p className="text-gray-500 font-inter">
                     {collections.length === 0
                       ? "You haven't created any collections yet. Start by creating your first NFT collection!"
-                      : "Try adjusting your search or filter criteria."
-                    }
+                      : "Try adjusting your search or filter criteria."}
                   </p>
                 </div>
                 {collections.length === 0 && (
@@ -198,9 +226,13 @@ export default function MyCollectionsPage() {
                   className="group bg-white rounded-3xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:shadow-brand-900/5 transition-all hover:-translate-y-1"
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase ${
-                      c.kind.startsWith('Lazy') ? 'bg-amber-100 text-amber-700' : 'bg-brand-100 text-brand-700'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase ${
+                        c.kind.startsWith("Lazy")
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-brand-100 text-brand-700"
+                      }`}
+                    >
                       {c.kind}
                     </span>
                     <Link
@@ -210,14 +242,17 @@ export default function MyCollectionsPage() {
                       <ExternalLink size={20} />
                     </Link>
                   </div>
-                  <h3 className="text-xl font-display font-bold text-gray-900 mb-2 truncate" title={c.address}>
+                  <h3
+                    className="text-xl font-display font-bold text-gray-900 mb-2 truncate"
+                    title={c.address}
+                  >
                     {c.address.slice(0, 8)}...{c.address.slice(-8)}
                   </h3>
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400 font-inter">Type</span>
                       <span className="text-gray-700 font-medium">
-                        {c.kind.replace('Mint', ' Mint')}
+                        {c.kind.replace("Mint", " Mint")}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">

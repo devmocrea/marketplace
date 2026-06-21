@@ -89,14 +89,16 @@ function getNetworkPassphrase(): string {
   return config.networkPassphrase;
 }
 
-
-const READ_ONLY_CALLER_PUBLIC_KEY = "GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN";
+const READ_ONLY_CALLER_PUBLIC_KEY =
+  "GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN";
 
 async function getReadOnlyCallerPublicKey(): Promise<string> {
   const connectedPublicKey = await getConnectedPublicKey();
   return connectedPublicKey ?? READ_ONLY_CALLER_PUBLIC_KEY;
 }
-function resolveConfiguredToken(tokenAddress: string = DEFAULT_TOKEN.address): TokenConfig {
+function resolveConfiguredToken(
+  tokenAddress: string = DEFAULT_TOKEN.address,
+): TokenConfig {
   const token = getTokenConfigByAddress(tokenAddress);
   if (!token) {
     throw new Error(`Unsupported token address: ${tokenAddress}`);
@@ -117,7 +119,7 @@ export async function invokeContract(
   method: string,
   args: xdr.ScVal[],
   readonly = false,
-  contractId: string = config.contractId
+  contractId: string = config.contractId,
 ): Promise<xdr.ScVal> {
   const readableError = (raw: string, fallback: string): Error => {
     const mapped = mapSorobanErrorMessage(raw);
@@ -148,8 +150,9 @@ export async function invokeContract(
 
   if (readonly) {
     // For read-only calls return the simulated result directly.
-    const retVal = (simResult as SorobanRpc.Api.SimulateTransactionSuccessResponse)
-      .result?.retval;
+    const retVal = (
+      simResult as SorobanRpc.Api.SimulateTransactionSuccessResponse
+    ).result?.retval;
     if (!retVal) throw new Error("No return value from simulation.");
     return retVal;
   }
@@ -163,7 +166,7 @@ export async function invokeContract(
 
   // Submit.
   const submitted = await rpc.sendTransaction(
-    TransactionBuilder.fromXDR(signedXdr, getNetworkPassphrase())
+    TransactionBuilder.fromXDR(signedXdr, getNetworkPassphrase()),
   );
 
   if (submitted.status === "ERROR") {
@@ -173,9 +176,7 @@ export async function invokeContract(
 
   // Poll for completion.
   let getResult = await rpc.getTransaction(submitted.hash);
-  while (
-    getResult.status === SorobanRpc.Api.GetTransactionStatus.NOT_FOUND
-  ) {
+  while (getResult.status === SorobanRpc.Api.GetTransactionStatus.NOT_FOUND) {
     await new Promise((r) => setTimeout(r, 1000));
     getResult = await rpc.getTransaction(submitted.hash);
   }
@@ -228,7 +229,9 @@ function parseAuctionFromScVal(raw: unknown): Auction {
     token: (obj["token"] as any).toString(),
     reserve_price: BigInt(obj["reserve_price"] as bigint),
     highest_bid: BigInt(obj["highest_bid"] as bigint),
-    highest_bidder: obj["highest_bidder"] ? (obj["highest_bidder"] as any).toString() : null,
+    highest_bidder: obj["highest_bidder"]
+      ? (obj["highest_bidder"] as any).toString()
+      : null,
     end_time: Number(obj["end_time"]),
     status: String(obj["status"]) as AuctionStatus,
     recipients: (obj["recipients"] as any[]).map(parseRecipient),
@@ -247,7 +250,7 @@ export async function createListing(
   tokenAddress: string = DEFAULT_TOKEN.address,
   collectionAddress: string,
   nftTokenId: number,
-  recipients: Array<{ address: string; percentage: number }> = []
+  recipients: Array<{ address: string; percentage: number }> = [],
 ): Promise<number> {
   if (isE2eMockChain()) {
     if (typeof window !== "undefined") registerE2eMockListingsOnWindow();
@@ -256,7 +259,7 @@ export async function createListing(
       price,
       tokenAddress,
       collectionAddress,
-      nftTokenId
+      nftTokenId,
     );
   }
 
@@ -264,9 +267,10 @@ export async function createListing(
   const selectedToken = resolveConfiguredToken(tokenAddress);
 
   // If no recipients provided, default to 100% to the artist
-  const finalRecipients = recipients.length > 0 
-    ? recipients 
-    : [{ address: artistPublicKey, percentage: 100 }];
+  const finalRecipients =
+    recipients.length > 0
+      ? recipients
+      : [{ address: artistPublicKey, percentage: 100 }];
 
   const args: xdr.ScVal[] = [
     new Address(artistPublicKey).toScVal(),
@@ -275,10 +279,13 @@ export async function createListing(
     new Address(selectedToken.address).toScVal(),
     new Address(collectionAddress).toScVal(),
     nativeToScVal(nftTokenId, { type: "u64" }),
-    nativeToScVal(finalRecipients.map(r => ({
+    nativeToScVal(
+      finalRecipients.map((r) => ({
         address: new Address(r.address),
-        percentage: r.percentage
-    })), { type: "vec" }),
+        percentage: r.percentage,
+      })),
+      { type: "vec" },
+    ),
   ];
 
   const retVal = await invokeContract(artistPublicKey, "create_listing", args);
@@ -290,7 +297,7 @@ export async function createListing(
  */
 export async function buyArtwork(
   buyerPublicKey: string,
-  listingId: number
+  listingId: number,
 ): Promise<boolean> {
   if (isE2eMockChain()) {
     if (typeof window !== "undefined") registerE2eMockListingsOnWindow();
@@ -311,7 +318,7 @@ export async function buyArtwork(
  */
 export async function cancelListing(
   artistPublicKey: string,
-  listingId: number
+  listingId: number,
 ): Promise<boolean> {
   const args: xdr.ScVal[] = [
     new Address(artistPublicKey).toScVal(),
@@ -331,7 +338,7 @@ export async function updateListing(
   newMetadataCid: string,
   newPrice: number,
   newTokenAddress: string,
-  newRecipients: Array<{ address: string; percentage: number }> = []
+  newRecipients: Array<{ address: string; percentage: number }> = [],
 ): Promise<boolean> {
   const priceStroops = xlmToStroops(newPrice);
   const selectedToken = resolveConfiguredToken(newTokenAddress);
@@ -342,10 +349,13 @@ export async function updateListing(
     nativeToScVal(Buffer.from(newMetadataCid, "utf-8"), { type: "bytes" }),
     nativeToScVal(priceStroops, { type: "i128" }),
     new Address(selectedToken.address).toScVal(),
-    nativeToScVal(newRecipients.map(r => ({
+    nativeToScVal(
+      newRecipients.map((r) => ({
         address: new Address(r.address),
-        percentage: r.percentage
-    })), { type: "vec" }),
+        percentage: r.percentage,
+      })),
+      { type: "vec" },
+    ),
   ];
 
   await invokeContract(artistPublicKey, "update_listing", args);
@@ -358,7 +368,12 @@ export async function updateListing(
 export async function getListing(listingId: number): Promise<Listing> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
   const args = [nativeToScVal(BigInt(listingId), { type: "u64" })];
-  const retVal = await invokeContract(callerPublicKey, "get_listing", args, true);
+  const retVal = await invokeContract(
+    callerPublicKey,
+    "get_listing",
+    args,
+    true,
+  );
   return parseListingFromScVal(retVal);
 }
 
@@ -367,17 +382,29 @@ export async function getListing(listingId: number): Promise<Listing> {
  */
 export async function getTotalListings(): Promise<number> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
-  const retVal = await invokeContract(callerPublicKey, "get_total_listings", [], true);
+  const retVal = await invokeContract(
+    callerPublicKey,
+    "get_total_listings",
+    [],
+    true,
+  );
   return Number(scValToNative(retVal));
 }
 
 /**
  * get_artist_listings — Fetch all listing IDs for an artist.
  */
-export async function getArtistListings(artistPublicKey: string): Promise<number[]> {
+export async function getArtistListings(
+  artistPublicKey: string,
+): Promise<number[]> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
   const args = [new Address(artistPublicKey).toScVal()];
-  const retVal = await invokeContract(callerPublicKey, "get_artist_listings", args, true);
+  const retVal = await invokeContract(
+    callerPublicKey,
+    "get_artist_listings",
+    args,
+    true,
+  );
   const ids = scValToNative(retVal) as bigint[];
   return ids.map(Number);
 }
@@ -407,7 +434,7 @@ export async function getAllListings(): Promise<Listing[]> {
   const total = await getTotalListings();
   const ids = Array.from({ length: total }, (_, i) => i + 1);
   const results = await Promise.all(
-    ids.map((id) => getListing(id).catch(() => null))
+    ids.map((id) => getListing(id).catch(() => null)),
   );
   return results.filter((l): l is Listing => l !== null);
   const totalRaw = await getTotalListings();
@@ -419,11 +446,11 @@ export async function getAllListings(): Promise<Listing[]> {
   for (let offset = 1; offset <= total; offset += BATCH_SIZE) {
     const batchIds = Array.from(
       { length: Math.min(BATCH_SIZE, total - offset + 1) },
-      (_, i) => offset + i
+      (_, i) => offset + i,
     );
 
     const results = await Promise.all(
-      batchIds.map((id) => getListing(id).catch(() => null))
+      batchIds.map((id) => getListing(id).catch(() => null)),
     );
 
     listings.push(...results.filter((l): l is Listing => l !== null));
@@ -468,7 +495,7 @@ export async function makeOffer(
   offererPublicKey: string,
   listingId: number,
   amountXlm: number,
-  tokenAddress: string
+  tokenAddress: string,
 ): Promise<number> {
   const amountStroops = xlmToStroops(amountXlm);
   const args = [
@@ -481,20 +508,38 @@ export async function makeOffer(
   return Number(scValToNative(retVal));
 }
 
-export async function withdrawOffer(offererPublicKey: string, offerId: number): Promise<boolean> {
-  const args = [new Address(offererPublicKey).toScVal(), nativeToScVal(BigInt(offerId), { type: "u64" })];
+export async function withdrawOffer(
+  offererPublicKey: string,
+  offerId: number,
+): Promise<boolean> {
+  const args = [
+    new Address(offererPublicKey).toScVal(),
+    nativeToScVal(BigInt(offerId), { type: "u64" }),
+  ];
   await invokeContract(offererPublicKey, "withdraw_offer", args);
   return true;
 }
 
-export async function acceptOffer(ownerPublicKey: string, offerId: number): Promise<boolean> {
-  const args = [new Address(ownerPublicKey).toScVal(), nativeToScVal(BigInt(offerId), { type: "u64" })];
+export async function acceptOffer(
+  ownerPublicKey: string,
+  offerId: number,
+): Promise<boolean> {
+  const args = [
+    new Address(ownerPublicKey).toScVal(),
+    nativeToScVal(BigInt(offerId), { type: "u64" }),
+  ];
   await invokeContract(ownerPublicKey, "accept_offer", args);
   return true;
 }
 
-export async function rejectOffer(ownerPublicKey: string, offerId: number): Promise<boolean> {
-  const args = [new Address(ownerPublicKey).toScVal(), nativeToScVal(BigInt(offerId), { type: "u64" })];
+export async function rejectOffer(
+  ownerPublicKey: string,
+  offerId: number,
+): Promise<boolean> {
+  const args = [
+    new Address(ownerPublicKey).toScVal(),
+    nativeToScVal(BigInt(offerId), { type: "u64" }),
+  ];
   await invokeContract(ownerPublicKey, "reject_offer", args);
   return true;
 }
@@ -509,15 +554,27 @@ export async function getOffer(offerId: number): Promise<Offer> {
 export async function getListingOffers(listingId: number): Promise<number[]> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
   const args = [nativeToScVal(BigInt(listingId), { type: "u64" })];
-  const retVal = await invokeContract(callerPublicKey, "get_listing_offers", args, true);
+  const retVal = await invokeContract(
+    callerPublicKey,
+    "get_listing_offers",
+    args,
+    true,
+  );
   const ids = scValToNative(retVal) as bigint[];
   return ids.map(Number);
 }
 
-export async function getOffererOffers(offererPublicKey: string): Promise<number[]> {
+export async function getOffererOffers(
+  offererPublicKey: string,
+): Promise<number[]> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
   const args = [new Address(offererPublicKey).toScVal()];
-  const retVal = await invokeContract(callerPublicKey, "get_offerer_offers", args, true);
+  const retVal = await invokeContract(
+    callerPublicKey,
+    "get_offerer_offers",
+    args,
+    true,
+  );
   const ids = scValToNative(retVal) as bigint[];
   return ids.map(Number);
 }
@@ -540,14 +597,15 @@ export async function createAuction(
   durationSeconds: number,
   royaltyBps: number = 0,
   recipients: Array<{ address: string; percentage: number }> = [],
-  tokenAddress: string = DEFAULT_TOKEN.address
+  tokenAddress: string = DEFAULT_TOKEN.address,
 ): Promise<number> {
   const reserveStroops = xlmToStroops(reservePriceXlm);
   const selectedToken = resolveConfiguredToken(tokenAddress);
 
-  const finalRecipients = recipients.length > 0
-    ? recipients
-    : [{ address: creatorPublicKey, percentage: 100 }];
+  const finalRecipients =
+    recipients.length > 0
+      ? recipients
+      : [{ address: creatorPublicKey, percentage: 100 }];
 
   const args: xdr.ScVal[] = [
     new Address(creatorPublicKey).toScVal(),
@@ -556,17 +614,16 @@ export async function createAuction(
     nativeToScVal(reserveStroops, { type: "i128" }),
     nativeToScVal(BigInt(durationSeconds), { type: "u64" }),
     nativeToScVal(royaltyBps, { type: "u32" }),
-    nativeToScVal(finalRecipients.map(r => ({
+    nativeToScVal(
+      finalRecipients.map((r) => ({
         address: new Address(r.address),
-        percentage: r.percentage
-    })), { type: "vec" }),
+        percentage: r.percentage,
+      })),
+      { type: "vec" },
+    ),
   ];
 
-  const retVal = await invokeContract(
-    creatorPublicKey,
-    "create_auction",
-    args
-  );
+  const retVal = await invokeContract(creatorPublicKey, "create_auction", args);
   return Number(scValToNative(retVal));
 }
 
@@ -576,7 +633,7 @@ export async function createAuction(
 export async function placeBid(
   bidderPublicKey: string,
   auctionId: number,
-  amountXlm: number
+  amountXlm: number,
 ): Promise<boolean> {
   const amountStroops = xlmToStroops(amountXlm);
 
@@ -595,7 +652,7 @@ export async function placeBid(
  */
 export async function finalizeAuction(
   callerPublicKey: string,
-  auctionId: number
+  auctionId: number,
 ): Promise<boolean> {
   const args: xdr.ScVal[] = [
     new Address(callerPublicKey).toScVal(),
@@ -612,11 +669,14 @@ export async function finalizeAuction(
 export async function getAuction(auctionId: number): Promise<Auction> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
 
-  const args: xdr.ScVal[] = [
-    nativeToScVal(BigInt(auctionId), { type: "u64" }),
-  ];
+  const args: xdr.ScVal[] = [nativeToScVal(BigInt(auctionId), { type: "u64" })];
 
-  const retVal = await invokeContract(callerPublicKey, "get_auction", args, true);
+  const retVal = await invokeContract(
+    callerPublicKey,
+    "get_auction",
+    args,
+    true,
+  );
   return parseAuctionFromScVal(retVal);
 }
 
@@ -624,7 +684,7 @@ export async function getAuction(auctionId: number): Promise<Auction> {
  * get_artist_auctions — Fetch all auction IDs for an artist.
  */
 export async function getArtistAuctions(
-  artistPublicKey: string
+  artistPublicKey: string,
 ): Promise<number[]> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
 
@@ -634,7 +694,7 @@ export async function getArtistAuctions(
     callerPublicKey,
     "get_artist_auctions",
     args,
-    true
+    true,
   );
 
   const ids = scValToNative(retVal) as bigint[];
@@ -663,20 +723,20 @@ export async function getAllAuctions(): Promise<Auction[]> {
 
   const auctions: Auction[] = [];
   const BATCH_SIZE = 10;
-  
+
   for (let offset = 1; offset <= total; offset += BATCH_SIZE) {
     const batchIds = Array.from(
       { length: Math.min(BATCH_SIZE, total - offset + 1) },
-      (_, i) => offset + i
+      (_, i) => offset + i,
     );
-    
+
     const results = await Promise.all(
-      batchIds.map((id) => getAuction(id).catch(() => null))
+      batchIds.map((id) => getAuction(id).catch(() => null)),
     );
-    
+
     auctions.push(...results.filter((a): a is Auction => a !== null));
   }
-  
+
   return auctions;
 }
 
@@ -685,10 +745,14 @@ export async function getAllAuctions(): Promise<Auction[]> {
  */
 export async function getTotalAuctions(): Promise<number> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
-  const retVal = await invokeContract(callerPublicKey, "get_total_auctions", [], true);
+  const retVal = await invokeContract(
+    callerPublicKey,
+    "get_total_auctions",
+    [],
+    true,
+  );
   return Number(scValToNative(retVal));
 }
-
 
 // ── Utils ───────────────────────────────────────────────────
 
@@ -717,9 +781,9 @@ export function stroopsToXlm(stroops: bigint): string {
   // Convert components to absolute values for formatting
   const absWhole = whole < 0n ? -whole : whole;
   const absFrac = frac < 0n ? -frac : frac;
-  const sign = (whole < 0n || frac < 0n) ? "-" : "";
+  const sign = whole < 0n || frac < 0n ? "-" : "";
 
-  let fracStr = absFrac.toString().padStart(7, '0').replace(/0+$/, "");
+  let fracStr = absFrac.toString().padStart(7, "0").replace(/0+$/, "");
   return fracStr ? `${sign}${absWhole}.${fracStr}` : `${sign}${absWhole}`;
 }
 
@@ -728,11 +792,9 @@ export function stroopsToXlm(stroops: bigint): string {
  */
 export async function revokeArtist(
   adminPublicKey: string,
-  artistPublicKey: string
+  artistPublicKey: string,
 ): Promise<boolean> {
-  const args: xdr.ScVal[] = [
-    new Address(artistPublicKey).toScVal(),
-  ];
+  const args: xdr.ScVal[] = [new Address(artistPublicKey).toScVal()];
 
   await invokeContract(adminPublicKey, "revoke_artist", args);
   return true;
@@ -743,11 +805,9 @@ export async function revokeArtist(
  */
 export async function reinstateArtist(
   adminPublicKey: string,
-  artistPublicKey: string
+  artistPublicKey: string,
 ): Promise<boolean> {
-  const args: xdr.ScVal[] = [
-    new Address(artistPublicKey).toScVal(),
-  ];
+  const args: xdr.ScVal[] = [new Address(artistPublicKey).toScVal()];
 
   await invokeContract(adminPublicKey, "reinstate_artist", args);
   return true;
@@ -757,15 +817,18 @@ export async function reinstateArtist(
  * is_artist_revoked — Check if an artist is revoked.
  */
 export async function isArtistRevoked(
-  artistPublicKey: string
+  artistPublicKey: string,
 ): Promise<boolean> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
-  const args: xdr.ScVal[] = [
-    new Address(artistPublicKey).toScVal(),
-  ];
+  const args: xdr.ScVal[] = [new Address(artistPublicKey).toScVal()];
 
   try {
-    const retVal = await invokeContract(callerPublicKey, "is_artist_revoked", args, true);
+    const retVal = await invokeContract(
+      callerPublicKey,
+      "is_artist_revoked",
+      args,
+      true,
+    );
     return scValToNative(retVal) as boolean;
   } catch {
     return false;
@@ -777,11 +840,9 @@ export async function isArtistRevoked(
  */
 export async function addTokenToWhitelist(
   adminPublicKey: string,
-  tokenAddress: string
+  tokenAddress: string,
 ): Promise<boolean> {
-  const args: xdr.ScVal[] = [
-    new Address(tokenAddress).toScVal(),
-  ];
+  const args: xdr.ScVal[] = [new Address(tokenAddress).toScVal()];
 
   await invokeContract(adminPublicKey, "add_token_to_whitelist", args);
   return true;
@@ -792,11 +853,9 @@ export async function addTokenToWhitelist(
  */
 export async function removeTokenFromWhitelist(
   adminPublicKey: string,
-  tokenAddress: string
+  tokenAddress: string,
 ): Promise<boolean> {
-  const args: xdr.ScVal[] = [
-    new Address(tokenAddress).toScVal(),
-  ];
+  const args: xdr.ScVal[] = [new Address(tokenAddress).toScVal()];
 
   await invokeContract(adminPublicKey, "remove_token_from_whitelist", args);
   return true;
@@ -808,9 +867,14 @@ export async function removeTokenFromWhitelist(
 export async function getTokenWhitelist(): Promise<string[]> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
   try {
-    const retVal = await invokeContract(callerPublicKey, "get_token_whitelist", [], true);
+    const retVal = await invokeContract(
+      callerPublicKey,
+      "get_token_whitelist",
+      [],
+      true,
+    );
     const native = scValToNative(retVal) as Address[];
-    return native.map(a => a.toString());
+    return native.map((a) => a.toString());
   } catch {
     return [];
   }
@@ -822,7 +886,12 @@ export async function getTokenWhitelist(): Promise<string[]> {
 export async function getTreasury(): Promise<string | null> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
   try {
-    const retVal = await invokeContract(callerPublicKey, "get_treasury", [], true);
+    const retVal = await invokeContract(
+      callerPublicKey,
+      "get_treasury",
+      [],
+      true,
+    );
     const native = scValToNative(retVal);
     return native ? (native as Address).toString() : null;
   } catch {
@@ -836,7 +905,12 @@ export async function getTreasury(): Promise<string | null> {
 export async function getProtocolFee(): Promise<number> {
   const callerPublicKey = await getReadOnlyCallerPublicKey();
   try {
-    const retVal = await invokeContract(callerPublicKey, "get_protocol_fee", [], true);
+    const retVal = await invokeContract(
+      callerPublicKey,
+      "get_protocol_fee",
+      [],
+      true,
+    );
     return Number(scValToNative(retVal));
   } catch {
     return 0;

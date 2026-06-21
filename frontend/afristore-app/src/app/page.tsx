@@ -61,7 +61,7 @@ function useInView(threshold = 0.2) {
           obs.unobserve(el);
         }
       },
-      { threshold }
+      { threshold },
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -125,13 +125,13 @@ export default function HomePage() {
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 sm:px-6 text-center">
           {/* Tagline badge */}
 
-
           {/* Main Heading */}
           <h1
-            className={`max-w-4xl font-display font-bold leading-[1.08] tracking-tight transition-all duration-1000 delay-200 ${heroLoaded
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
-              }`}
+            className={`max-w-4xl font-display font-bold leading-[1.08] tracking-tight transition-all duration-1000 delay-200 ${
+              heroLoaded
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
           >
             <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white">
               Where African Art
@@ -143,28 +143,29 @@ export default function HomePage() {
 
           {/* Subtitle */}
           <p
-            className={`mt-6 max-w-2xl text-base sm:text-lg md:text-xl text-white/70 leading-relaxed font-light transition-all duration-1000 delay-500 ${heroLoaded
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
-              }`}
+            className={`mt-6 max-w-2xl text-base sm:text-lg md:text-xl text-white/70 leading-relaxed font-light transition-all duration-1000 delay-500 ${
+              heroLoaded
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
           >
-            Discover, collect, and trade authentic African masterpieces.
-            Every piece is verified on-chain, ensuring provenance and empowering
+            Discover, collect, and trade authentic African masterpieces. Every
+            piece is verified on-chain, ensuring provenance and empowering
             artists across the continent.
           </p>
 
-
           {/* CTA Buttons */}
           <div
-            className={`mt-10 flex flex-col sm:flex-row items-center gap-4 transition-all duration-1000 delay-700 ${heroLoaded
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
-              }`}
+            className={`mt-10 flex flex-col sm:flex-row items-center gap-4 transition-all duration-1000 delay-700 ${
+              heroLoaded
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
           >
             <button
               onClick={() => {
                 if (!isConnected) connect();
-                else router.push('/explore');
+                else router.push("/explore");
               }}
               disabled={isConnecting}
               className="group relative flex items-center gap-3 rounded-xl bg-brand-500 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 hover:shadow-xl hover:shadow-brand-500/40 disabled:opacity-60 transition-all duration-300 animate-pulse-glow"
@@ -196,10 +197,11 @@ export default function HomePage() {
               <button
                 key={i}
                 onClick={() => setHeroIdx(i)}
-                className={`h-1.5 rounded-full transition-all duration-500 ${heroIdx === i
-                  ? "w-8 bg-brand-400"
-                  : "w-3 bg-white/30 hover:bg-white/50"
-                  }`}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  heroIdx === i
+                    ? "w-8 bg-brand-400"
+                    : "w-3 bg-white/30 hover:bg-white/50"
+                }`}
               />
             ))}
           </div>
@@ -251,16 +253,14 @@ export default function HomePage() {
             ].map((stat, i) => (
               <div
                 key={stat.label}
-                className={`glass-card rounded-2xl p-8 transition-all duration-700 ${statsView.inView
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-6"
-                  }`}
+                className={`glass-card rounded-2xl p-8 transition-all duration-700 ${
+                  statsView.inView
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-6"
+                }`}
                 style={{ transitionDelay: `${i * 200}ms` }}
               >
-                <stat.icon
-                  size={28}
-                  className="mx-auto mb-3 text-brand-400"
-                />
+                <stat.icon size={28} className="mx-auto mb-3 text-brand-400" />
                 <p className="text-3xl sm:text-4xl font-display font-bold text-white">
                   {stat.value.toLocaleString()}
                   <span className="text-brand-400">{stat.suffix}</span>
@@ -372,10 +372,11 @@ function HowItWorksSection() {
           {steps.map((step, i) => (
             <div
               key={step.num}
-              className={`group relative rounded-2xl bg-gray-50 p-7 hover:bg-white hover:shadow-xl hover:shadow-brand-100/50 transition-all duration-500 border border-transparent hover:border-brand-100 ${sectionView.inView
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-                }`}
+              className={`group relative rounded-2xl bg-gray-50 p-7 hover:bg-white hover:shadow-xl hover:shadow-brand-100/50 transition-all duration-500 border border-transparent hover:border-brand-100 ${
+                sectionView.inView
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
+              }`}
               style={{ transitionDelay: `${i * 150}ms` }}
             >
               {/* Step number */}
@@ -419,10 +420,11 @@ function CulturalMissionSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Text content */}
           <div
-            className={`transition-all duration-700 ${sectionView.inView
-              ? "opacity-100 translate-x-0"
-              : "opacity-0 -translate-x-8"
-              }`}
+            className={`transition-all duration-700 ${
+              sectionView.inView
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-8"
+            }`}
           >
             <p className="text-brand-400 font-semibold text-sm tracking-widest uppercase mb-4">
               ✦ Our Mission
@@ -441,8 +443,8 @@ function CulturalMissionSection() {
             <p className="mt-4 text-white/50 text-base leading-relaxed">
               By leveraging Stellar&apos;s blockchain technology, we ensure that
               every sale is transparent, every artist is fairly compensated, and
-              every collector receives a verifiably authentic piece of Africa&apos;s
-              rich cultural tapestry.
+              every collector receives a verifiably authentic piece of
+              Africa&apos;s rich cultural tapestry.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -463,10 +465,11 @@ function CulturalMissionSection() {
 
           {/* Image grid */}
           <div
-            className={`grid grid-cols-2 gap-4 transition-all duration-700 delay-300 ${sectionView.inView
-              ? "opacity-100 translate-x-0"
-              : "opacity-0 translate-x-8"
-              }`}
+            className={`grid grid-cols-2 gap-4 transition-all duration-700 delay-300 ${
+              sectionView.inView
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 translate-x-8"
+            }`}
           >
             <div className="space-y-4">
               <div className="relative aspect-[3/4] rounded-2xl overflow-hidden corner-accent">
@@ -542,10 +545,11 @@ function FinalCTASection({
         <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-terracotta-500/5 blur-3xl" />
 
         <div
-          className={`relative z-10 mx-auto max-w-3xl px-4 sm:px-6 text-center transition-all duration-700 ${ctaView.inView
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-8"
-            }`}
+          className={`relative z-10 mx-auto max-w-3xl px-4 sm:px-6 text-center transition-all duration-700 ${
+            ctaView.inView
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
         >
           <div className="adinkra-pattern">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
@@ -562,7 +566,7 @@ function FinalCTASection({
             <button
               onClick={() => {
                 if (!isConnected) connect();
-                else router.push('/explore');
+                else router.push("/explore");
               }}
               disabled={isConnecting}
               className="group flex items-center gap-3 rounded-xl bg-brand-500 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-brand-500/25 hover:bg-brand-600 hover:shadow-xl hover:shadow-brand-500/35 disabled:opacity-60 transition-all duration-300"
@@ -625,7 +629,7 @@ function useInView2(threshold = 0.2) {
           obs.unobserve(el);
         }
       },
-      { threshold }
+      { threshold },
     );
     obs.observe(el);
     return () => obs.disconnect();

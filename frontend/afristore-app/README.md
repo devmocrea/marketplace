@@ -16,7 +16,6 @@ This is due to the `@stellar/stellar-sdk` package pulling in Node.js dependencie
 
 For more info, see: https://github.com/stellar/js-stellar-sdk/issues/922
 
-
 # afristore-app
 
 ## Monorepo & Lockfile Strategy
@@ -41,20 +40,21 @@ Next.js 14 frontend for the Afristore decentralized African art marketplace.
 
 ## Tech Stack
 
-| Layer | Library |
-|---|---|
-| Framework | Next.js 15 (App Router) |
-| Styling | Tailwind CSS |
-| Blockchain | `@stellar/stellar-sdk` |
-| Wallet | `@stellar/freighter-api` |
-| IPFS | Pinata REST API (`axios`) |
-| Icons | `lucide-react` |
+| Layer      | Library                   |
+| ---------- | ------------------------- |
+| Framework  | Next.js 15 (App Router)   |
+| Styling    | Tailwind CSS              |
+| Blockchain | `@stellar/stellar-sdk`    |
+| Wallet     | `@stellar/freighter-api`  |
+| IPFS       | Pinata REST API (`axios`) |
+| Icons      | `lucide-react`            |
 
 ## Design Guidelines
 
 For open-source contributors or UI designers, please adhere to the following design system when implementing new features or components:
 
 **Color Palette:**
+
 - Primary Brand Color: `#E27D60` (Vibrant Terracotta)
 - Secondary Brand Color: `#85DCBA` (Soft Mint Green)
 - Background Color (Light): `#F8F9FA` (Off-white)
@@ -65,6 +65,7 @@ For open-source contributors or UI designers, please adhere to the following des
 - Accent Success: `#2A9D8F` (Teal)
 
 **Typography (Google Fonts):**
+
 - Headings (H1-H6): `Playfair Display` (Bold, semi-bold - reflects an artistic, gallery-like feel)
 - Body Text: `Inter` (Regular, Medium - ensures readability for long descriptions and numbers)
 - Monospace (Wallet Addresses, code): `Fira Code` or `JetBrains Mono`
@@ -72,8 +73,7 @@ For open-source contributors or UI designers, please adhere to the following des
 **Visual Guide**
 [link to docs here](https://docs.google.com/document/d/1ABou8688S3lLqG9ZXAW9i5z8h9p2QVZdtIeEpRB4Y-M/edit?usp=sharing)
 
-
-*Note: The frontend avoids Figma for the time being. Follow these styles by utilizing Tailwind utility classes properly mapped in `tailwind.config.ts`.*
+_Note: The frontend avoids Figma for the time being. Follow these styles by utilizing Tailwind utility classes properly mapped in `tailwind.config.ts`._
 
 ## Project Structure
 
@@ -113,16 +113,16 @@ Copy `.env.example` to `.env.local` and fill in your values:
 cp .env.example .env.local
 ```
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_CONTRACT_ID` | Deployed Soroban contract address |
-| `NEXT_PUBLIC_STELLAR_NETWORK` | `testnet` or `mainnet` |
-| `NEXT_PUBLIC_STELLAR_RPC_URL` | Soroban RPC endpoint |
-| `NEXT_PUBLIC_STELLAR_HORIZON_URL` | Horizon REST API |
-| `NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE` | Stellar network passphrase |
-| `PINATA_JWT` | Pinata API JWT (server-side only; never expose publicly) |
-| `NEXT_PUBLIC_PINATA_GATEWAY` | Pinata IPFS gateway URL |
-| `NEXT_PUBLIC_INDEXER_URL` | Base URL of the Afristore indexer API (e.g. `http://localhost:4000` in dev) |
+| Variable                                 | Description                                                                 |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_CONTRACT_ID`                | Deployed Soroban contract address                                           |
+| `NEXT_PUBLIC_STELLAR_NETWORK`            | `testnet` or `mainnet`                                                      |
+| `NEXT_PUBLIC_STELLAR_RPC_URL`            | Soroban RPC endpoint                                                        |
+| `NEXT_PUBLIC_STELLAR_HORIZON_URL`        | Horizon REST API                                                            |
+| `NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE` | Stellar network passphrase                                                  |
+| `PINATA_JWT`                             | Pinata API JWT (server-side only; never expose publicly)                    |
+| `NEXT_PUBLIC_PINATA_GATEWAY`             | Pinata IPFS gateway URL                                                     |
+| `NEXT_PUBLIC_INDEXER_URL`                | Base URL of the Afristore indexer API (e.g. `http://localhost:4000` in dev) |
 
 ## Install & Run
 
@@ -137,13 +137,13 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Available Scripts
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Start dev server with hot-reload |
-| `npm run build` | Production build |
-| `npm run start` | Start production server |
-| `npm run lint` | ESLint (CLI; `next lint` is not used) |
-| `npm run type-check` | TypeScript check (no emit) |
+| Script               | Description                           |
+| -------------------- | ------------------------------------- |
+| `npm run dev`        | Start dev server with hot-reload      |
+| `npm run build`      | Production build                      |
+| `npm run start`      | Start production server               |
+| `npm run lint`       | ESLint (CLI; `next lint` is not used) |
+| `npm run type-check` | TypeScript check (no emit)            |
 
 ## Wallet Setup
 

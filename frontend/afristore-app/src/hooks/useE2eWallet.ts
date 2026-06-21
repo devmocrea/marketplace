@@ -21,7 +21,9 @@ function readStoredPassphrase(): string | null {
 /** Playwright-driven wallet for E2E — avoids the Freighter browser extension. */
 export function useE2eWallet(): WalletState {
   const [publicKey, setPublicKey] = useState<string | null>(null);
-  const [networkPassphrase, setNetworkPassphrase] = useState<string | null>(null);
+  const [networkPassphrase, setNetworkPassphrase] = useState<string | null>(
+    null,
+  );
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +40,8 @@ export function useE2eWallet(): WalletState {
     typeof window === "undefined" ||
     sessionStorage.getItem(INSTALLED_STORAGE) !== "false";
 
-  const isWrongNetwork = !!publicKey &&
+  const isWrongNetwork =
+    !!publicKey &&
     !!networkPassphrase &&
     networkPassphrase !== config.networkPassphrase;
 
@@ -61,7 +64,9 @@ export function useE2eWallet(): WalletState {
         throw new Error("E2E wallet public key not set in sessionStorage.");
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "E2E wallet connect failed");
+      setError(
+        err instanceof Error ? err.message : "E2E wallet connect failed",
+      );
     } finally {
       setIsConnecting(false);
     }

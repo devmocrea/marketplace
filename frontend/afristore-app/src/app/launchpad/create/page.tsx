@@ -7,7 +7,7 @@ export default function CreateCollectionPage() {
   return (
     <main className="min-h-screen bg-brand-50/20">
       <Navbar />
-      
+
       <div className="pt-24 pb-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col items-center mb-8">
@@ -18,7 +18,7 @@ export default function CreateCollectionPage() {
               New Collection
             </h1>
           </div>
-          
+
           <CollectionForm />
         </div>
       </div>

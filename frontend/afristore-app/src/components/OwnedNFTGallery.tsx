@@ -17,7 +17,9 @@ export function OwnedNFTGallery({ onSelect }: OwnedNFTGalleryProps) {
   if (!publicKey) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-white/60 font-inter text-lg">Connect your wallet to view your NFTs.</p>
+        <p className="text-white/60 font-inter text-lg">
+          Connect your wallet to view your NFTs.
+        </p>
       </div>
     );
   }
@@ -25,7 +27,9 @@ export function OwnedNFTGallery({ onSelect }: OwnedNFTGalleryProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-display font-bold text-white">Select an NFT to List</h2>
+        <h2 className="text-2xl font-display font-bold text-white">
+          Select an NFT to List
+        </h2>
         <button
           onClick={refresh}
           disabled={isLoading}
@@ -52,9 +56,12 @@ export function OwnedNFTGallery({ onSelect }: OwnedNFTGalleryProps) {
           <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
             <ImageIcon size={32} className="text-white/40" />
           </div>
-          <h3 className="text-xl font-display font-bold text-white mb-2">No NFTs Found</h3>
+          <h3 className="text-xl font-display font-bold text-white mb-2">
+            No NFTs Found
+          </h3>
           <p className="text-white/50 max-w-sm">
-            It looks like you don&apos;t own any NFTs on this network yet, or the indexer hasn&apos;t synced them.
+            It looks like you don&apos;t own any NFTs on this network yet, or
+            the indexer hasn&apos;t synced them.
           </p>
         </div>
       ) : (
@@ -79,7 +86,7 @@ export function OwnedNFTGallery({ onSelect }: OwnedNFTGalleryProps) {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-midnight-950/90 via-midnight-950/20 to-transparent opacity-60" />
-                
+
                 {/* Hover Overlay */}
                 <div className="absolute inset-0 bg-midnight-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                   <button
@@ -90,14 +97,18 @@ export function OwnedNFTGallery({ onSelect }: OwnedNFTGalleryProps) {
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-5">
                 <h3 className="text-lg font-display font-bold text-white truncate mb-1">
                   {token.name || `Token #${token.tokenId}`}
                 </h3>
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-white/40 truncate w-32" title={token.collectionAddress}>
-                    {token.collectionAddress.slice(0, 8)}...{token.collectionAddress.slice(-6)}
+                  <span
+                    className="text-white/40 truncate w-32"
+                    title={token.collectionAddress}
+                  >
+                    {token.collectionAddress.slice(0, 8)}...
+                    {token.collectionAddress.slice(-6)}
                   </span>
                   <span className="text-brand-400 font-bold bg-brand-500/10 px-2 py-1 rounded-lg">
                     ID: {token.tokenId}

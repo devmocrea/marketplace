@@ -41,7 +41,7 @@ export default function CollectionMintPage({
   const { address } = use(params);
   const { publicKey } = useWalletContext();
   const [record, setRecord] = useState<CollectionRecord | null | undefined>(
-    undefined
+    undefined,
   );
   const [metadata, setMetadata] = useState<CollectionMetadata | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -55,9 +55,13 @@ export default function CollectionMintPage({
   // Lazy redeem fields
   const [lazyTokenId, setLazyTokenId] = useState("1");
   const [lazyPrice, setLazyPrice] = useState("0");
-  const [lazyCurrency, setLazyCurrency] = useState("CB64D3G7SM2RTH6JSGG34DDTFTQ5CFDKVDZJZF3HQV6WEIVGUPAQCE7Y");
+  const [lazyCurrency, setLazyCurrency] = useState(
+    "CB64D3G7SM2RTH6JSGG34DDTFTQ5CFDKVDZJZF3HQV6WEIVGUPAQCE7Y",
+  );
   const [lazyUri, setLazyUri] = useState("");
-  const [lazyUriHash, setLazyUriHash] = useState("0000000000000000000000000000000000000000000000000000000000000000");
+  const [lazyUriHash, setLazyUriHash] = useState(
+    "0000000000000000000000000000000000000000000000000000000000000000",
+  );
   const [lazyValidUntil, setLazyValidUntil] = useState("0");
   const [lazyBuyerQuota, setLazyBuyerQuota] = useState("1");
 
@@ -73,7 +77,7 @@ export default function CollectionMintPage({
       record
         ? record.kind === "LazyMint721" || record.kind === "LazyMint1155"
         : null,
-    [record]
+    [record],
   );
 
   const loadCollection = useCallback(async () => {
@@ -129,7 +133,9 @@ export default function CollectionMintPage({
     }
     const to = recipient.trim();
     if (!to.startsWith("G") || to.length < 50) {
-      setTxMessage("Enter a valid Stellar destination address for the recipient.");
+      setTxMessage(
+        "Enter a valid Stellar destination address for the recipient.",
+      );
       setTxPhase("error");
       return;
     }
@@ -147,7 +153,7 @@ export default function CollectionMintPage({
       setTxPhase("success");
     } catch (e) {
       setTxMessage(
-        e instanceof Error ? e.message : "Transaction failed. Try again."
+        e instanceof Error ? e.message : "Transaction failed. Try again.",
       );
       setTxPhase("error");
     }
@@ -193,7 +199,7 @@ export default function CollectionMintPage({
       setTxPhase("success");
     } catch (e) {
       setTxMessage(
-        e instanceof Error ? e.message : "Transaction failed. Try again."
+        e instanceof Error ? e.message : "Transaction failed. Try again.",
       );
       setTxPhase("error");
     }
@@ -226,17 +232,27 @@ export default function CollectionMintPage({
         publicKey,
         address,
         voucher,
-        signatureHex.trim()
+        signatureHex.trim(),
       );
       setResultDetail(`Redeemed. Minted token id ${tokenId}.`);
       setTxPhase("success");
     } catch (e) {
       setTxMessage(
-        e instanceof Error ? e.message : "Transaction failed. Try again."
+        e instanceof Error ? e.message : "Transaction failed. Try again.",
       );
       setTxPhase("error");
     }
-  }, [publicKey, lazyTokenId, lazyPrice, lazyCurrency, lazyUri, lazyUriHash, lazyValidUntil, signatureHex, address]);
+  }, [
+    publicKey,
+    lazyTokenId,
+    lazyPrice,
+    lazyCurrency,
+    lazyUri,
+    lazyUriHash,
+    lazyValidUntil,
+    signatureHex,
+    address,
+  ]);
 
   const runRedeem1155 = useCallback(async () => {
     if (!publicKey) {
@@ -276,40 +292,85 @@ export default function CollectionMintPage({
         address,
         voucher,
         amt,
-        signatureHex.trim()
+        signatureHex.trim(),
       );
       setResultDetail(`Redeemed ${amt} unit(s) successfully.`);
       setTxPhase("success");
     } catch (e) {
       setTxMessage(
-        e instanceof Error ? e.message : "Transaction failed. Try again."
+        e instanceof Error ? e.message : "Transaction failed. Try again.",
       );
       setTxPhase("error");
     }
-  }, [publicKey, lazyTokenId, lazyBuyerQuota, lazyPrice, lazyCurrency, lazyUri, lazyUriHash, lazyValidUntil, signatureHex, redeemAmount, address]);
+  }, [
+    publicKey,
+    lazyTokenId,
+    lazyBuyerQuota,
+    lazyPrice,
+    lazyCurrency,
+    lazyUri,
+    lazyUriHash,
+    lazyValidUntil,
+    signatureHex,
+    redeemAmount,
+    address,
+  ]);
 
   const isBusy = txPhase === "signing" || txPhase === "validating";
 
-  const derived721VoucherJson = useMemo(() => JSON.stringify({
-    token_id: lazyTokenId,
-    price: lazyPrice,
-    currency: lazyCurrency,
-    uri: lazyUri,
-    uri_hash: lazyUriHash,
-    valid_until: lazyValidUntil
-  }, null, 2), [lazyTokenId, lazyPrice, lazyCurrency, lazyUri, lazyUriHash, lazyValidUntil]);
+  const derived721VoucherJson = useMemo(
+    () =>
+      JSON.stringify(
+        {
+          token_id: lazyTokenId,
+          price: lazyPrice,
+          currency: lazyCurrency,
+          uri: lazyUri,
+          uri_hash: lazyUriHash,
+          valid_until: lazyValidUntil,
+        },
+        null,
+        2,
+      ),
+    [
+      lazyTokenId,
+      lazyPrice,
+      lazyCurrency,
+      lazyUri,
+      lazyUriHash,
+      lazyValidUntil,
+    ],
+  );
 
-  const derived1155VoucherJson = useMemo(() => JSON.stringify({
-    token_id: lazyTokenId,
-    buyer_quota: lazyBuyerQuota,
-    price_per_unit: lazyPrice,
-    currency: lazyCurrency,
-    uri: lazyUri,
-    uri_hash: lazyUriHash,
-    valid_until: lazyValidUntil
-  }, null, 2), [lazyTokenId, lazyBuyerQuota, lazyPrice, lazyCurrency, lazyUri, lazyUriHash, lazyValidUntil]);
+  const derived1155VoucherJson = useMemo(
+    () =>
+      JSON.stringify(
+        {
+          token_id: lazyTokenId,
+          buyer_quota: lazyBuyerQuota,
+          price_per_unit: lazyPrice,
+          currency: lazyCurrency,
+          uri: lazyUri,
+          uri_hash: lazyUriHash,
+          valid_until: lazyValidUntil,
+        },
+        null,
+        2,
+      ),
+    [
+      lazyTokenId,
+      lazyBuyerQuota,
+      lazyPrice,
+      lazyCurrency,
+      lazyUri,
+      lazyUriHash,
+      lazyValidUntil,
+    ],
+  );
 
-  const isSignatureValid = signatureHex.trim() === "" || /^[0-9a-fA-F]{128}$/.test(signatureHex.trim());
+  const isSignatureValid =
+    signatureHex.trim() === "" ||
+    /^[0-9a-fA-F]{128}$/.test(signatureHex.trim());
 
   return (
     <main className="min-h-screen bg-brand-50/20">
@@ -334,7 +395,9 @@ export default function CollectionMintPage({
               className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center"
               role="alert"
             >
-              <p className="text-red-700 font-bold font-display mb-2">Cannot mint</p>
+              <p className="text-red-700 font-bold font-display mb-2">
+                Cannot mint
+              </p>
               <p className="text-red-600/90 text-sm font-inter">{loadError}</p>
               <button
                 type="button"
@@ -393,14 +456,16 @@ export default function CollectionMintPage({
                 </div>
               )}
 
-              {(txPhase === "error" && txMessage) && (
+              {txPhase === "error" && txMessage && (
                 <div
                   className="rounded-2xl border border-red-200 bg-red-50 p-5 flex gap-3"
                   role="alert"
                 >
                   <AlertCircle className="text-red-500 shrink-0" size={24} />
                   <div>
-                    <p className="font-bold text-red-800 text-sm">Action failed</p>
+                    <p className="font-bold text-red-800 text-sm">
+                      Action failed
+                    </p>
                     <p className="text-sm text-red-700/90 font-inter mt-1">
                       {txMessage}
                     </p>
@@ -449,7 +514,9 @@ export default function CollectionMintPage({
                     {isBusy ? (
                       <span className="inline-flex items-center justify-center gap-2">
                         <Loader2 className="animate-spin" size={20} />
-                        {txPhase === "validating" ? "Checking…" : "Sign in Freighter…"}
+                        {txPhase === "validating"
+                          ? "Checking…"
+                          : "Sign in Freighter…"}
                       </span>
                     ) : (
                       "Mint NFT"
@@ -464,7 +531,8 @@ export default function CollectionMintPage({
                     Mint (1155)
                   </h2>
                   <p className="text-sm text-gray-600 font-inter">
-                    Mints a new token type via <code>mint_new</code> (creator only).
+                    Mints a new token type via <code>mint_new</code> (creator
+                    only).
                   </p>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">
                     Recipient
@@ -511,40 +579,93 @@ export default function CollectionMintPage({
                     Guided Voucher Builder (Lazy 721)
                   </h2>
                   <p className="text-sm text-gray-600 font-inter">
-                    Fill in the voucher fields provided by the creator. The structured JSON will be generated for you. You pay gas (and the voucher price) as the connected wallet.
+                    Fill in the voucher fields provided by the creator. The
+                    structured JSON will be generated for you. You pay gas (and
+                    the voucher price) as the connected wallet.
                   </p>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Token ID</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyTokenId} onChange={(e) => setLazyTokenId(e.target.value)} disabled={isBusy} placeholder="1" />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Token ID
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyTokenId}
+                        onChange={(e) => setLazyTokenId(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="1"
+                      />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Price</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyPrice} onChange={(e) => setLazyPrice(e.target.value)} disabled={isBusy} placeholder="0" />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Price
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyPrice}
+                        onChange={(e) => setLazyPrice(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="0"
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Currency Address</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 font-mono text-xs" value={lazyCurrency} onChange={(e) => setLazyCurrency(e.target.value)} disabled={isBusy} placeholder="C..." />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Currency Address
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 font-mono text-xs"
+                        value={lazyCurrency}
+                        onChange={(e) => setLazyCurrency(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="C..."
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">URI</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyUri} onChange={(e) => setLazyUri(e.target.value)} disabled={isBusy} placeholder="ipfs://..." />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        URI
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyUri}
+                        onChange={(e) => setLazyUri(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="ipfs://..."
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">URI Hash (64 hex chars)</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 font-mono text-xs" value={lazyUriHash} onChange={(e) => setLazyUriHash(e.target.value)} disabled={isBusy} placeholder="000..." />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        URI Hash (64 hex chars)
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 font-mono text-xs"
+                        value={lazyUriHash}
+                        onChange={(e) => setLazyUriHash(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="000..."
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Valid Until (Timestamp)</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyValidUntil} onChange={(e) => setLazyValidUntil(e.target.value)} disabled={isBusy} placeholder="0" />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Valid Until (Timestamp)
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyValidUntil}
+                        onChange={(e) => setLazyValidUntil(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="0"
+                      />
                     </div>
                   </div>
 
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">
                     Generated JSON Preview (Read-Only)
                   </label>
-                  <p className="text-xs text-gray-400 mb-2">Creators: Copy this JSON to sign offline. Buyers: Verify it matches the creator&apos;s details.</p>
+                  <p className="text-xs text-gray-400 mb-2">
+                    Creators: Copy this JSON to sign offline. Buyers: Verify it
+                    matches the creator&apos;s details.
+                  </p>
                   <textarea
                     className="w-full min-h-[180px] rounded-2xl border border-gray-200 bg-gray-50 p-4 font-mono text-xs text-gray-600 focus:outline-none"
                     value={derived721VoucherJson}
@@ -555,17 +676,23 @@ export default function CollectionMintPage({
                     Signature (128 hex)
                   </label>
                   <input
-                    className={`w-full rounded-2xl border ${!isSignatureValid ? 'border-red-400 bg-red-50' : 'border-gray-200'} px-4 py-3 font-mono text-xs`}
+                    className={`w-full rounded-2xl border ${!isSignatureValid ? "border-red-400 bg-red-50" : "border-gray-200"} px-4 py-3 font-mono text-xs`}
                     value={signatureHex}
                     onChange={(e) => setSignatureHex(e.target.value)}
                     disabled={isBusy}
                     placeholder="128 hex chars"
                   />
-                  {!isSignatureValid && <p className="text-xs text-red-500">Signature must be exactly 128 hex characters.</p>}
+                  {!isSignatureValid && (
+                    <p className="text-xs text-red-500">
+                      Signature must be exactly 128 hex characters.
+                    </p>
+                  )}
 
                   <button
                     type="button"
-                    disabled={isBusy || !isSignatureValid || signatureHex.trim() === ""}
+                    disabled={
+                      isBusy || !isSignatureValid || signatureHex.trim() === ""
+                    }
                     onClick={runRedeem721}
                     className="w-full rounded-2xl bg-brand-500 py-4 text-white font-bold hover:bg-brand-600 disabled:opacity-50 mt-2"
                   >
@@ -580,45 +707,105 @@ export default function CollectionMintPage({
                     Guided Voucher Builder (Lazy 1155)
                   </h2>
                   <p className="text-sm text-gray-600 font-inter">
-                    Fill in the voucher fields provided by the creator. Edition caps must be registered
-                    on-chain by the creator before redemption.
+                    Fill in the voucher fields provided by the creator. Edition
+                    caps must be registered on-chain by the creator before
+                    redemption.
                   </p>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Token ID</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyTokenId} onChange={(e) => setLazyTokenId(e.target.value)} disabled={isBusy} placeholder="1" />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Token ID
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyTokenId}
+                        onChange={(e) => setLazyTokenId(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="1"
+                      />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Buyer Quota</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyBuyerQuota} onChange={(e) => setLazyBuyerQuota(e.target.value)} disabled={isBusy} placeholder="1" />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Buyer Quota
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyBuyerQuota}
+                        onChange={(e) => setLazyBuyerQuota(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="1"
+                      />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Price Per Unit</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyPrice} onChange={(e) => setLazyPrice(e.target.value)} disabled={isBusy} placeholder="0" />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Price Per Unit
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyPrice}
+                        onChange={(e) => setLazyPrice(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="0"
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Currency Address</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 font-mono text-xs" value={lazyCurrency} onChange={(e) => setLazyCurrency(e.target.value)} disabled={isBusy} placeholder="C..." />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Currency Address
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 font-mono text-xs"
+                        value={lazyCurrency}
+                        onChange={(e) => setLazyCurrency(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="C..."
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">URI</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyUri} onChange={(e) => setLazyUri(e.target.value)} disabled={isBusy} placeholder="ipfs://..." />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        URI
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyUri}
+                        onChange={(e) => setLazyUri(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="ipfs://..."
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">URI Hash (64 hex chars)</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 font-mono text-xs" value={lazyUriHash} onChange={(e) => setLazyUriHash(e.target.value)} disabled={isBusy} placeholder="000..." />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        URI Hash (64 hex chars)
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 font-mono text-xs"
+                        value={lazyUriHash}
+                        onChange={(e) => setLazyUriHash(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="000..."
+                      />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Valid Until (Timestamp)</label>
-                      <input className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm" value={lazyValidUntil} onChange={(e) => setLazyValidUntil(e.target.value)} disabled={isBusy} placeholder="0" />
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
+                        Valid Until (Timestamp)
+                      </label>
+                      <input
+                        className="w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+                        value={lazyValidUntil}
+                        onChange={(e) => setLazyValidUntil(e.target.value)}
+                        disabled={isBusy}
+                        placeholder="0"
+                      />
                     </div>
                   </div>
 
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">
                     Generated JSON Preview (Read-Only)
                   </label>
-                  <p className="text-xs text-gray-400 mb-2">Creators: Copy this JSON to sign offline. Buyers: Verify it matches the creator&apos;s details.</p>
+                  <p className="text-xs text-gray-400 mb-2">
+                    Creators: Copy this JSON to sign offline. Buyers: Verify it
+                    matches the creator&apos;s details.
+                  </p>
                   <textarea
                     className="w-full min-h-[200px] rounded-2xl border border-gray-200 bg-gray-50 p-4 font-mono text-xs text-gray-600 focus:outline-none"
                     value={derived1155VoucherJson}
@@ -643,19 +830,25 @@ export default function CollectionMintPage({
                         Signature (128 hex)
                       </label>
                       <input
-                        className={`w-full rounded-2xl border ${!isSignatureValid ? 'border-red-400 bg-red-50' : 'border-gray-200'} px-4 py-3 font-mono text-xs`}
+                        className={`w-full rounded-2xl border ${!isSignatureValid ? "border-red-400 bg-red-50" : "border-gray-200"} px-4 py-3 font-mono text-xs`}
                         value={signatureHex}
                         onChange={(e) => setSignatureHex(e.target.value)}
                         disabled={isBusy}
                         placeholder="128 hex chars"
                       />
-                      {!isSignatureValid && <p className="text-xs text-red-500 mt-1">Signature must be exactly 128 hex characters.</p>}
+                      {!isSignatureValid && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Signature must be exactly 128 hex characters.
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   <button
                     type="button"
-                    disabled={isBusy || !isSignatureValid || signatureHex.trim() === ""}
+                    disabled={
+                      isBusy || !isSignatureValid || signatureHex.trim() === ""
+                    }
                     onClick={runRedeem1155}
                     className="w-full rounded-2xl bg-brand-500 py-4 text-white font-bold hover:bg-brand-600 disabled:opacity-50 mt-2"
                   >

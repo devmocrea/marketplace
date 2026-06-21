@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
 
 type ToastType = "error" | "success" | "info";
@@ -18,8 +24,10 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 function iconForType(type: ToastType) {
-  if (type === "error") return <AlertCircle size={16} className="text-red-400" />;
-  if (type === "success") return <CheckCircle2 size={16} className="text-mint-500" />;
+  if (type === "error")
+    return <AlertCircle size={16} className="text-red-400" />;
+  if (type === "success")
+    return <CheckCircle2 size={16} className="text-mint-500" />;
   return <Info size={16} className="text-brand-400" />;
 }
 
@@ -42,7 +50,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       setToasts((prev) => [...prev, { id, message, type }]);
       window.setTimeout(() => removeToast(id), durationMs);
     },
-    [removeToast]
+    [removeToast],
   );
 
   const value = useMemo<ToastContextValue>(() => ({ pushToast }), [pushToast]);

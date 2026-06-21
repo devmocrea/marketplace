@@ -8,7 +8,7 @@ import {
 import { getTokenWhitelist } from "@/lib/contract";
 
 export function resolveSupportedTokens(
-  whitelistedAddresses: readonly string[]
+  whitelistedAddresses: readonly string[],
 ): TokenConfig[] {
   const validWhitelist = whitelistedAddresses.filter(isValidTokenAddress);
 
@@ -27,23 +27,32 @@ export async function fetchSupportedTokens(): Promise<TokenConfig[]> {
 
 export function ensureTokenOption(
   tokens: readonly TokenConfig[],
-  tokenAddress: string
+  tokenAddress: string,
 ): TokenConfig[] {
   const configuredToken = getTokenConfigByAddress(tokenAddress);
-  if (!configuredToken || tokens.some((token) => token.address === tokenAddress)) {
+  if (
+    !configuredToken ||
+    tokens.some((token) => token.address === tokenAddress)
+  ) {
     return [...tokens];
   }
 
   return [...tokens, configuredToken];
 }
 
-export function getDefaultSupportedToken(tokens: readonly TokenConfig[]): TokenConfig {
-  return tokens.find((token) => token.address === DEFAULT_TOKEN.address) ?? tokens[0] ?? DEFAULT_TOKEN;
+export function getDefaultSupportedToken(
+  tokens: readonly TokenConfig[],
+): TokenConfig {
+  return (
+    tokens.find((token) => token.address === DEFAULT_TOKEN.address) ??
+    tokens[0] ??
+    DEFAULT_TOKEN
+  );
 }
 
 export async function assertSupportedTokenAddress(
   tokenAddress: string | undefined,
-  context: string
+  context: string,
 ): Promise<TokenConfig> {
   const address = tokenAddress ?? DEFAULT_TOKEN.address;
 
@@ -58,7 +67,9 @@ export async function assertSupportedTokenAddress(
 
   const whitelist = (await getTokenWhitelist()).filter(isValidTokenAddress);
   if (whitelist.length > 0 && !whitelist.includes(configuredToken.address)) {
-    throw new Error("Token address is not enabled in the current contract whitelist.");
+    throw new Error(
+      "Token address is not enabled in the current contract whitelist.",
+    );
   }
 
   return configuredToken;

@@ -7,7 +7,9 @@ import { Magic } from "magic-sdk";
 const MAGIC_API_KEY = process.env.NEXT_PUBLIC_MAGIC_API_KEY;
 
 if (!MAGIC_API_KEY) {
-  console.warn("NEXT_PUBLIC_MAGIC_API_KEY is not set. Magic wallet will not be available.");
+  console.warn(
+    "NEXT_PUBLIC_MAGIC_API_KEY is not set. Magic wallet will not be available.",
+  );
 }
 
 let magicInstance: Magic | null = null;
@@ -20,7 +22,9 @@ export function getMagicInstance(): Magic {
     magicInstance = new Magic(MAGIC_API_KEY);
   }
   if (!magicInstance) {
-    throw new Error("Magic SDK not initialized. Please set NEXT_PUBLIC_MAGIC_API_KEY.");
+    throw new Error(
+      "Magic SDK not initialized. Please set NEXT_PUBLIC_MAGIC_API_KEY.",
+    );
   }
   return magicInstance;
 }
@@ -50,18 +54,19 @@ export async function isMagicLoggedIn(): Promise<boolean> {
 export async function loginWithMagicLink(email: string): Promise<MagicAccount> {
   try {
     const magic = getMagicInstance();
-    
+
     // Send magic link to email
     const didToken = await magic.auth.loginWithMagicLink({ email });
-    
+
     // Get user metadata
     const userMetadata = await magic.user.getInfo();
-    
+
     // The Magic SDK might return different property names
-    const publicAddress = (userMetadata as any).publicAddress || 
-                         (userMetadata as any).walletAddress || 
-                         (userMetadata as any).address;
-    
+    const publicAddress =
+      (userMetadata as any).publicAddress ||
+      (userMetadata as any).walletAddress ||
+      (userMetadata as any).address;
+
     if (!publicAddress) {
       throw new Error("Failed to get public address from Magic");
     }
@@ -83,7 +88,7 @@ export async function loginWithMagicLink(email: string): Promise<MagicAccount> {
 export async function loginWithPasskey(): Promise<MagicAccount> {
   try {
     const magic = getMagicInstance();
-    
+
     // Attempt passkey login (if available)
     let didToken;
     try {
@@ -91,15 +96,16 @@ export async function loginWithPasskey(): Promise<MagicAccount> {
     } catch (e) {
       throw new Error("Passkey login is not available or failed");
     }
-    
+
     // Get user metadata
     const userMetadata = await magic.user.getInfo();
-    
+
     // The Magic SDK might return different property names
-    const publicAddress = (userMetadata as any).publicAddress || 
-                         (userMetadata as any).walletAddress || 
-                         (userMetadata as any).address;
-    
+    const publicAddress =
+      (userMetadata as any).publicAddress ||
+      (userMetadata as any).walletAddress ||
+      (userMetadata as any).address;
+
     if (!publicAddress) {
       throw new Error("Failed to get public address from Magic");
     }
@@ -122,18 +128,20 @@ export async function getMagicUserMetadata(): Promise<MagicAccount | null> {
   try {
     const magic = getMagicInstance();
     const isLoggedIn = await magic.user.isLoggedIn();
-    
+
     if (!isLoggedIn) {
       return null;
     }
 
     const userMetadata = await magic.user.getInfo();
-    
+
     // The Magic SDK might return different property names
-    const publicAddress = (userMetadata as any).publicAddress || 
-                         (userMetadata as any).walletAddress || 
-                         (userMetadata as any).address || "";
-    
+    const publicAddress =
+      (userMetadata as any).publicAddress ||
+      (userMetadata as any).walletAddress ||
+      (userMetadata as any).address ||
+      "";
+
     return {
       email: userMetadata.email || "unknown",
       publicAddress: publicAddress,
@@ -169,6 +177,6 @@ export async function logoutFromMagic(): Promise<void> {
 export async function signWithMagic(_txXdr: string): Promise<string> {
   throw new Error(
     "Magic wallet does not support Stellar transaction signing yet. " +
-    "Please use Freighter wallet. Stellar support for Magic is coming soon."
+      "Please use Freighter wallet. Stellar support for Magic is coming soon.",
   );
 }

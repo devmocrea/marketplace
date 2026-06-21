@@ -5,7 +5,17 @@ import Link from "next/link";
 import { useLaunchpadCollections } from "@/hooks/useLaunchpad";
 import { useWalletContext } from "@/context/WalletContext";
 import { useLaunchpadAdminCheck } from "@/hooks/useLaunchpadAdmin";
-import { Loader2, Rocket, Palette, Zap, ExternalLink, TrendingUp, Users, Star, Shield } from "lucide-react";
+import {
+  Loader2,
+  Rocket,
+  Palette,
+  Zap,
+  ExternalLink,
+  TrendingUp,
+  Users,
+  Star,
+  Shield,
+} from "lucide-react";
 
 export default function LaunchpadPage() {
   const { collections, isLoading, error } = useLaunchpadCollections();
@@ -33,9 +43,9 @@ export default function LaunchpadPage() {
                 Afristore Launchpad
               </h1>
               <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8 font-inter leading-relaxed">
-                Launch your NFT collections on Stellar with our powerful factory contract.
-                Deploy ERC-721 and ERC-1155 collections with built-in royalties, lazy minting,
-                and seamless marketplace integration.
+                Launch your NFT collections on Stellar with our powerful factory
+                contract. Deploy ERC-721 and ERC-1155 collections with built-in
+                royalties, lazy minting, and seamless marketplace integration.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
@@ -68,7 +78,8 @@ export default function LaunchpadPage() {
                 Everything You Need to Launch
               </h2>
               <p className="text-white/60 max-w-2xl mx-auto font-inter text-lg">
-                Our launchpad provides all the tools and infrastructure for successful NFT collection deployment.
+                Our launchpad provides all the tools and infrastructure for
+                successful NFT collection deployment.
               </p>
             </div>
 
@@ -81,7 +92,8 @@ export default function LaunchpadPage() {
                   Multiple Standards
                 </h3>
                 <p className="text-white/60 font-inter">
-                  Deploy ERC-721 and ERC-1155 collections with normal or lazy minting capabilities.
+                  Deploy ERC-721 and ERC-1155 collections with normal or lazy
+                  minting capabilities.
                 </p>
               </div>
 
@@ -93,7 +105,8 @@ export default function LaunchpadPage() {
                   Gas Efficient
                 </h3>
                 <p className="text-white/60 font-inter">
-                  Shared WASM bytecode reduces deployment costs and network storage requirements.
+                  Shared WASM bytecode reduces deployment costs and network
+                  storage requirements.
                 </p>
               </div>
 
@@ -105,7 +118,8 @@ export default function LaunchpadPage() {
                   Royalty Support
                 </h3>
                 <p className="text-white/60 font-inter">
-                  Built-in royalty enforcement ensures creators earn from secondary sales.
+                  Built-in royalty enforcement ensures creators earn from
+                  secondary sales.
                 </p>
               </div>
             </div>
@@ -126,7 +140,7 @@ export default function LaunchpadPage() {
               </div>
               <div className="text-center">
                 <div className="text-4xl font-display font-black text-mint-400 mb-2">
-                  {new Set(collections.map(c => c.creator)).size}
+                  {new Set(collections.map((c) => c.creator)).size}
                 </div>
                 <div className="text-white/50 font-inter font-medium">
                   Active Creators
@@ -172,7 +186,9 @@ export default function LaunchpadPage() {
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
                   <Loader2 size={48} className="animate-spin text-brand-500" />
-                  <p className="text-white/60 font-medium font-inter">Loading collections...</p>
+                  <p className="text-white/60 font-medium font-inter">
+                    Loading collections...
+                  </p>
                 </div>
               ) : error ? (
                 <div className="rounded-3xl bg-red-500/10 p-12 text-center border border-red-500/20">
@@ -186,18 +202,27 @@ export default function LaunchpadPage() {
                       className="group bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-6 shadow-sm hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-500/30 transition-all hover:-translate-y-1"
                     >
                       <div className="flex justify-between items-start mb-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase ${
-                          c.kind.startsWith('Lazy') ? 'bg-amber-500/20 text-amber-400' : 'bg-brand-500/20 text-brand-400'
-                        }`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase ${
+                            c.kind.startsWith("Lazy")
+                              ? "bg-amber-500/20 text-amber-400"
+                              : "bg-brand-500/20 text-brand-400"
+                          }`}
+                        >
                           {c.kind}
                         </span>
                       </div>
-                      <h3 className="text-xl font-display font-bold text-white mb-2 truncate" title={c.address}>
+                      <h3
+                        className="text-xl font-display font-bold text-white mb-2 truncate"
+                        title={c.address}
+                      >
                         {c.address.slice(0, 8)}...{c.address.slice(-8)}
                       </h3>
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/40 font-inter">Creator</span>
+                          <span className="text-white/40 font-inter">
+                            Creator
+                          </span>
                           <span className="text-white/70 font-mono font-medium truncate ml-4 w-32 text-right">
                             {c.creator.slice(0, 4)}...{c.creator.slice(-4)}
                           </span>
@@ -224,7 +249,8 @@ export default function LaunchpadPage() {
               Ready to Launch Your Collection?
             </h2>
             <p className="text-xl text-white/90 mb-8 font-inter">
-              Join hundreds of creators who have successfully launched their NFT collections on Afristore.
+              Join hundreds of creators who have successfully launched their NFT
+              collections on Afristore.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

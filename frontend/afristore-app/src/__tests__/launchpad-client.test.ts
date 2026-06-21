@@ -9,9 +9,12 @@ jest.mock("../lib/contract", () => ({
 }));
 
 describe("Launchpad Client", () => {
-  const mockCreator = "GBFUNHEQOVN35LFEKP7SZXFYJPMJ3WLXLX4PQZGBK737NTLRHOKVES3F";
-  const mockCurrency = "CD3FSSR667WES5YVVUZZ22LFRQ2RB5NGJGGQEGSPP4OXWLJJV5EFHIIR";
-  const mockRoyaltyReceiver = "GBFUNHEQOVN35LFEKP7SZXFYJPMJ3WLXLX4PQZGBK737NTLRHOKVES3F";
+  const mockCreator =
+    "GBFUNHEQOVN35LFEKP7SZXFYJPMJ3WLXLX4PQZGBK737NTLRHOKVES3F";
+  const mockCurrency =
+    "CD3FSSR667WES5YVVUZZ22LFRQ2RB5NGJGGQEGSPP4OXWLJJV5EFHIIR";
+  const mockRoyaltyReceiver =
+    "GBFUNHEQOVN35LFEKP7SZXFYJPMJ3WLXLX4PQZGBK737NTLRHOKVES3F";
   const mockSalt = Buffer.alloc(32, 1);
 
   beforeEach(() => {
@@ -20,7 +23,7 @@ describe("Launchpad Client", () => {
 
   it("maps deployNormal721 arguments correctly", async () => {
     (invokeContract as jest.Mock).mockResolvedValue(
-      new Address(mockCreator).toScVal()
+      new Address(mockCreator).toScVal(),
     );
 
     await deployNormal721(
@@ -31,7 +34,7 @@ describe("Launchpad Client", () => {
       1000,
       500,
       mockRoyaltyReceiver,
-      mockSalt
+      mockSalt,
     );
 
     expect(invokeContract).toHaveBeenCalledWith(
@@ -39,11 +42,11 @@ describe("Launchpad Client", () => {
       "deploy_normal_721",
       expect.any(Array),
       false,
-      expect.any(String)
+      expect.any(String),
     );
 
     const args = (invokeContract as jest.Mock).mock.calls[0][2] as xdr.ScVal[];
-    
+
     // Check name
     expect(scValToNative(args[2])).toBe("Test Collection");
     // Check symbol
@@ -57,7 +60,9 @@ describe("Launchpad Client", () => {
   });
 
   it("handles errors from invokeContract", async () => {
-    (invokeContract as jest.Mock).mockRejectedValue(new Error("Simulation failed"));
+    (invokeContract as jest.Mock).mockRejectedValue(
+      new Error("Simulation failed"),
+    );
 
     await expect(
       deployNormal721(
@@ -68,8 +73,8 @@ describe("Launchpad Client", () => {
         100,
         0,
         mockCreator,
-        mockSalt
-      )
+        mockSalt,
+      ),
     ).rejects.toThrow("Simulation failed");
   });
 });

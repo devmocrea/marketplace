@@ -21,7 +21,9 @@ export function useOwnedNFTs(publicKey: string | null) {
       setTokens(result);
     } catch (err: unknown) {
       console.error("Failed to fetch owned tokens:", err);
-      setError(err instanceof Error ? err.message : "Failed to load owned NFTs");
+      setError(
+        err instanceof Error ? err.message : "Failed to load owned NFTs",
+      );
     } finally {
       setIsLoading(false);
     }

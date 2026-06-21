@@ -43,7 +43,8 @@ export function AuctionForm({ onSuccess, onCancel }: AuctionFormProps) {
   const hasTokenOptions = availableTokens.length > 0;
   const defaultToken = getDefaultSupportedToken(availableTokens);
   const selectedToken =
-    availableTokens.find((t) => t.address === form.tokenAddress) ?? defaultToken;
+    availableTokens.find((t) => t.address === form.tokenAddress) ??
+    defaultToken;
 
   // When available tokens load, snap to a valid selection if needed
   useEffect(() => {

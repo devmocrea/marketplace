@@ -30,7 +30,10 @@ const TOKEN_METADATA: Record<TokenSymbol, Omit<TokenConfig, "address">> = {
   },
 };
 
-const TOKEN_ADDRESSES_BY_NETWORK: Record<string, Partial<Record<TokenSymbol, string>>> = {
+const TOKEN_ADDRESSES_BY_NETWORK: Record<
+  string,
+  Partial<Record<TokenSymbol, string>>
+> = {
   testnet: {
     XLM:
       process.env.NEXT_PUBLIC_NATIVE_TOKEN_CONTRACT_ID ??
@@ -93,7 +96,9 @@ const resolvedDefaultToken =
   getTokenConfigBySymbol(NATIVE_TOKEN_SYMBOL) ?? SUPPORTED_TOKENS[0];
 
 if (!resolvedDefaultToken) {
-  throw new Error(`No supported tokens are configured for network "${config.network}".`);
+  throw new Error(
+    `No supported tokens are configured for network "${config.network}".`,
+  );
 }
 
 export const DEFAULT_TOKEN = resolvedDefaultToken;
@@ -107,6 +112,8 @@ export function getNativeTokenConfig(): TokenConfig {
   return token;
 }
 
-export function getTokenConfigByAddress(address: string): TokenConfig | undefined {
+export function getTokenConfigByAddress(
+  address: string,
+): TokenConfig | undefined {
   return SUPPORTED_TOKENS.find((token) => token.address === address);
 }

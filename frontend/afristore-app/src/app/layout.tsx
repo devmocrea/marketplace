@@ -49,8 +49,8 @@ export default function RootLayout({
                         rel="noopener noreferrer"
                       >
                         Stellar
-                      </a>
-                      {" "}·{" "}
+                      </a>{" "}
+                      ·{" "}
                       <a
                         href="https://freighter.app"
                         className="text-brand-400/70 hover:text-brand-400 hover:underline transition-colors"
@@ -58,15 +58,15 @@ export default function RootLayout({
                         rel="noopener noreferrer"
                       >
                         Freighter Wallet
-                      </a>
-                      {" "}·{" "}
+                      </a>{" "}
+                      ·{" "}
                       <a
                         href="/settings"
                         className="text-brand-400/70 hover:text-brand-400 hover:underline transition-colors"
                       >
                         Settings
-                      </a>
-                      {" "}·{" "}
+                      </a>{" "}
+                      ·{" "}
                       <a
                         href="/help"
                         className="text-brand-400/70 hover:text-brand-400 hover:underline transition-colors"
@@ -75,7 +75,8 @@ export default function RootLayout({
                       </a>
                     </p>
                     <p className="mt-3 text-xs text-white/15">
-                      Celebrating African art and heritage through blockchain technology.
+                      Celebrating African art and heritage through blockchain
+                      technology.
                     </p>
                   </div>
                 </footer>

@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  X,
-  CreditCard,
-  Wallet,
-  Loader2,
-} from "lucide-react";
+import { X, CreditCard, Wallet, Loader2 } from "lucide-react";
 import { Listing, stroopsToXlm } from "@/lib/contract";
 import posthog from "posthog-js";
 

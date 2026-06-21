@@ -28,15 +28,19 @@ describe("token support", () => {
 
   it("rejects malformed token addresses before contract calls", async () => {
     await expect(
-      assertSupportedTokenAddress("not-a-contract-address", "listing")
+      assertSupportedTokenAddress("not-a-contract-address", "listing"),
     ).rejects.toThrow("Invalid listing token address.");
   });
 
   it("rejects configured tokens that are not in the current whitelist", async () => {
-    (getTokenWhitelist as jest.Mock).mockResolvedValue([whitelistedButUnconfiguredToken]);
+    (getTokenWhitelist as jest.Mock).mockResolvedValue([
+      whitelistedButUnconfiguredToken,
+    ]);
 
     await expect(
-      assertSupportedTokenAddress(DEFAULT_TOKEN.address, "listing")
-    ).rejects.toThrow("Token address is not enabled in the current contract whitelist.");
+      assertSupportedTokenAddress(DEFAULT_TOKEN.address, "listing"),
+    ).rejects.toThrow(
+      "Token address is not enabled in the current contract whitelist.",
+    );
   });
 });

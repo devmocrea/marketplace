@@ -1,15 +1,15 @@
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test";
 
-export const E2E_METADATA_CID = 'QmE2eTestMetadataCid';
-export const E2E_IMAGE_CID = 'QmE2eTestImageCid';
+export const E2E_METADATA_CID = "QmE2eTestMetadataCid";
+export const E2E_IMAGE_CID = "QmE2eTestImageCid";
 
 export const MOCK_ARTWORK_METADATA = {
-  title: 'E2E Serengeti Sunset',
-  description: 'Automated test listing',
-  artist: 'E2E Artist',
+  title: "E2E Serengeti Sunset",
+  description: "Automated test listing",
+  artist: "E2E Artist",
   image: `ipfs://${E2E_IMAGE_CID}`,
-  year: '2024',
-  category: 'Digital Art',
+  year: "2024",
+  category: "Digital Art",
 };
 
 export interface E2eIndexerListing {
@@ -36,72 +36,79 @@ export class MarketplaceTestStore {
   }
 
   upsertActive(listing: E2eIndexerListing) {
-    this.listings = this.listings.filter((l) => l.listing_id !== listing.listing_id);
+    this.listings = this.listings.filter(
+      (l) => l.listing_id !== listing.listing_id,
+    );
     this.listings.push(listing);
   }
 
   markSold(listingId: number, buyer: string) {
     this.listings = this.listings.map((l) =>
-      l.listing_id === listingId ? { ...l, status: 'Sold', owner: buyer } : l
+      l.listing_id === listingId ? { ...l, status: "Sold", owner: buyer } : l,
     );
   }
 
   activeListings() {
-    return this.listings.filter((l) => l.status === 'Active');
+    return this.listings.filter((l) => l.status === "Active");
   }
 }
 
 const INDEXER_URL = (
-  process.env.NEXT_PUBLIC_INDEXER_URL ?? 'http://localhost:4000'
-).replace(/\/$/, '');
+  process.env.NEXT_PUBLIC_INDEXER_URL ?? "http://localhost:4000"
+).replace(/\/$/, "");
 
 /**
  * Mocks IPFS uploads, metadata gateway reads, and indexer listing API.
  * Chain calls use NEXT_PUBLIC_E2E_MOCK_CHAIN on the dev server.
  */
-export async function setupMarketplaceMocks(page: Page, store: MarketplaceTestStore) {
-  await page.route('**/api/ipfs/upload-image', async (route) => {
+export async function setupMarketplaceMocks(
+  page: Page,
+  store: MarketplaceTestStore,
+) {
+  await page.route("**/api/ipfs/upload-image", async (route) => {
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({ cid: E2E_IMAGE_CID }),
     });
   });
 
-  await page.route('**/api/ipfs/upload-metadata', async (route) => {
+  await page.route("**/api/ipfs/upload-metadata", async (route) => {
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({ cid: E2E_METADATA_CID }),
     });
   });
 
-  const fulfillMetadata = async (route: { fulfill: (opts: object) => Promise<void> }) => {
+  const fulfillMetadata = async (route: {
+    fulfill: (opts: object) => Promise<void>;
+  }) => {
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify(MOCK_ARTWORK_METADATA),
     });
   };
 
-  await page.route('**/gateway.pinata.cloud/ipfs/**', fulfillMetadata);
-  await page.route('**/ipfs.io/ipfs/**', fulfillMetadata);
+  await page.route("**/gateway.pinata.cloud/ipfs/**", fulfillMetadata);
+  await page.route("**/ipfs.io/ipfs/**", fulfillMetadata);
 
   await page.route(`${INDEXER_URL}/listings**`, async (route) => {
-    if (route.request().method() !== 'GET') {
+    if (route.request().method() !== "GET") {
       return route.continue();
     }
 
     const url = new URL(route.request().url());
-    const statusFilter = url.searchParams.get('status');
+    const statusFilter = url.searchParams.get("status");
     let rows = store.listings;
-    if (statusFilter && statusFilter !== 'All') {
+    if (statusFilter && statusFilter !== "All") {
       rows = rows.filter((l) => l.status === statusFilter);
     }
 
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({ listings: rows, total: rows.length }),
     });
   });
@@ -109,6 +116,8 @@ export async function setupMarketplaceMocks(page: Page, store: MarketplaceTestSt
 
 export async function resetE2eListingsInBrowser(page: Page) {
   await page.evaluate(() => {
-    (window as Window & { __E2E_RESET_LISTINGS__?: () => void }).__E2E_RESET_LISTINGS__?.();
+    (
+      window as Window & { __E2E_RESET_LISTINGS__?: () => void }
+    ).__E2E_RESET_LISTINGS__?.();
   });
 }

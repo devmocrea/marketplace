@@ -1,6 +1,12 @@
 "use client";
 
-import { Search, SlidersHorizontal, ArrowUpDown, X, Filter } from "lucide-react";
+import {
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+  X,
+  Filter,
+} from "lucide-react";
 import { ART_CATEGORIES } from "./ListingForm";
 
 export type StatusFilter = "All" | "Active" | "Sold" | "Cancelled";
@@ -48,11 +54,11 @@ export function SearchFilter({
     });
   };
 
-  const hasActiveFilters = 
-    filters.search !== "" || 
-    filters.status !== "All" || 
-    filters.category !== "All" || 
-    filters.minPrice !== "" || 
+  const hasActiveFilters =
+    filters.search !== "" ||
+    filters.status !== "All" ||
+    filters.category !== "All" ||
+    filters.minPrice !== "" ||
     filters.maxPrice !== "";
 
   return (
@@ -99,7 +105,9 @@ export function SearchFilter({
               />
               <select
                 value={filters.sort}
-                onChange={(e) => onFilterChange({ sort: e.target.value as SortOption })}
+                onChange={(e) =>
+                  onFilterChange({ sort: e.target.value as SortOption })
+                }
                 className="appearance-none rounded-xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-10 text-sm font-semibold text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10 cursor-pointer shadow-sm transition-all"
               >
                 {SORT_OPTIONS.map((opt) => (
@@ -183,7 +191,9 @@ export function SearchFilter({
 
           <div className="mt-4 flex items-center justify-between px-2">
             <p className="text-sm text-gray-500">
-              Found <span className="font-bold text-gray-900">{totalResults}</span> results matching your criteria
+              Found{" "}
+              <span className="font-bold text-gray-900">{totalResults}</span>{" "}
+              results matching your criteria
             </p>
             {hasActiveFilters && (
               <button

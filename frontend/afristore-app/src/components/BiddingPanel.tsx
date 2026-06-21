@@ -63,11 +63,14 @@ export function BiddingPanel({
 }: BiddingPanelProps) {
   const { publicKey } = useWalletContext();
   const { bid, isBidding, error: bidError } = usePlaceBid(publicKey);
-  const { finalize, isFinalizing, error: finalizeError } =
-    useFinalizeAuction(publicKey);
+  const {
+    finalize,
+    isFinalizing,
+    error: finalizeError,
+  } = useFinalizeAuction(publicKey);
 
   const { days, hours, minutes, seconds, isExpired } = useCountdown(
-    auction.end_time
+    auction.end_time,
   );
 
   const [bidAmount, setBidAmount] = useState("");
@@ -77,7 +80,7 @@ export function BiddingPanel({
   const reserveXlm = parseFloat(stroopsToXlm(auction.reserve_price));
   const minimumBid = Math.max(
     currentBidXlm > 0 ? currentBidXlm + 0.0000001 : reserveXlm,
-    reserveXlm
+    reserveXlm,
   );
 
   const isOwn = publicKey === auction.creator;
@@ -120,8 +123,9 @@ export function BiddingPanel({
       {/* Status badge */}
       <div className="flex items-center justify-between">
         <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLOR[auction.status] ?? ""
-            }`}
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            STATUS_COLOR[auction.status] ?? ""
+          }`}
         >
           {auction.status}
         </span>

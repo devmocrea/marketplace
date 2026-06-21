@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     if (!(file instanceof File)) {
       return NextResponse.json(
         { error: "Missing file in form data." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       const body = await pinataRes.text();
       return NextResponse.json(
         { error: `Pinata upload failed: ${body}` },
-        { status: 502 }
+        { status: 502 },
       );
     }
 

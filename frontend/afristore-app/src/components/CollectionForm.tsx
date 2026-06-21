@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDeployCollection, DeployCollectionInput } from "@/hooks/useLaunchpad";
+import {
+  useDeployCollection,
+  DeployCollectionInput,
+} from "@/hooks/useLaunchpad";
 import { useWalletContext } from "@/context/WalletContext";
 import { Loader2, Rocket, CheckCircle, ArrowRight } from "lucide-react";
 import { GuardButton } from "./WalletGuard";
@@ -32,7 +35,9 @@ export function CollectionForm() {
       return;
     }
 
-    if (!supportedTokens.some((token) => token.address === form.currencyAddress)) {
+    if (
+      !supportedTokens.some((token) => token.address === form.currencyAddress)
+    ) {
       setForm((current) => ({
         ...current,
         currencyAddress: getDefaultSupportedToken(supportedTokens).address,
@@ -79,7 +84,8 @@ export function CollectionForm() {
             Collection Deployed!
           </h3>
           <p className="text-gray-500 font-inter">
-            Your collection has been successfully created on the Stellar network.
+            Your collection has been successfully created on the Stellar
+            network.
           </p>
           <div className="mt-4 p-4 bg-gray-50 rounded-2xl break-all font-mono text-sm text-gray-600 border border-gray-100">
             {successAddress}
@@ -107,7 +113,8 @@ export function CollectionForm() {
             Launch Your Collection
           </h2>
           <p className="text-gray-500 font-inter">
-            Create a permanent home for your digital creations on the blockchain.
+            Create a permanent home for your digital creations on the
+            blockchain.
           </p>
         </header>
 
@@ -119,10 +126,26 @@ export function CollectionForm() {
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  { id: "Normal721", label: "Standard 721", desc: "Classic one-of-a-kind NFTs" },
-                  { id: "Normal1155", label: "Standard 1155", desc: "Multi-edition fungible tokens" },
-                  { id: "LazyMint721", label: "Lazy 721", desc: "Mint only when sold (Gasless)" },
-                  { id: "LazyMint1155", label: "Lazy 1155", desc: "Multi-edition lazy minting" },
+                  {
+                    id: "Normal721",
+                    label: "Standard 721",
+                    desc: "Classic one-of-a-kind NFTs",
+                  },
+                  {
+                    id: "Normal1155",
+                    label: "Standard 1155",
+                    desc: "Multi-edition fungible tokens",
+                  },
+                  {
+                    id: "LazyMint721",
+                    label: "Lazy 721",
+                    desc: "Mint only when sold (Gasless)",
+                  },
+                  {
+                    id: "LazyMint1155",
+                    label: "Lazy 1155",
+                    desc: "Multi-edition lazy minting",
+                  },
                 ].map((type) => (
                   <label
                     key={type.id}
@@ -137,11 +160,20 @@ export function CollectionForm() {
                       name="kind"
                       value={type.id}
                       checked={form.kind === type.id}
-                      onChange={(e) => setForm({ ...form, kind: e.target.value as CollectionKind })}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          kind: e.target.value as CollectionKind,
+                        })
+                      }
                       className="sr-only"
                     />
-                    <span className="font-bold text-gray-900">{type.label}</span>
-                    <span className="text-xs text-gray-500 mt-1">{type.desc}</span>
+                    <span className="font-bold text-gray-900">
+                      {type.label}
+                    </span>
+                    <span className="text-xs text-gray-500 mt-1">
+                      {type.desc}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -169,7 +201,9 @@ export function CollectionForm() {
                   <input
                     required
                     value={form.symbol}
-                    onChange={(e) => setForm({ ...form, symbol: e.target.value.toUpperCase() })}
+                    onChange={(e) =>
+                      setForm({ ...form, symbol: e.target.value.toUpperCase() })
+                    }
                     className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-5 py-4 text-base focus:border-brand-500 focus:bg-white focus:outline-none transition-all shadow-sm font-inter"
                     placeholder="e.g. AFRL"
                     maxLength={10}
@@ -184,7 +218,9 @@ export function CollectionForm() {
                     type="number"
                     min={1}
                     value={form.maxSupply}
-                    onChange={(e) => setForm({ ...form, maxSupply: parseInt(e.target.value) })}
+                    onChange={(e) =>
+                      setForm({ ...form, maxSupply: parseInt(e.target.value) })
+                    }
                     className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-5 py-4 text-base focus:border-brand-500 focus:bg-white focus:outline-none transition-all shadow-sm font-inter"
                   />
                 </div>
@@ -202,7 +238,9 @@ export function CollectionForm() {
                   min={0}
                   max={10000}
                   value={form.royaltyBps}
-                  onChange={(e) => setForm({ ...form, royaltyBps: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setForm({ ...form, royaltyBps: parseInt(e.target.value) })
+                  }
                   className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-5 py-4 pr-16 text-base focus:border-brand-500 focus:bg-white focus:outline-none transition-all shadow-sm font-inter"
                 />
                 <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-600">
@@ -219,7 +257,9 @@ export function CollectionForm() {
                 required
                 disabled={!hasSupportedTokens}
                 value={form.currencyAddress}
-                onChange={(e) => setForm({ ...form, currencyAddress: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, currencyAddress: e.target.value })
+                }
                 className="w-full appearance-none rounded-2xl border border-gray-200 bg-gray-50/50 px-5 py-4 text-base focus:border-brand-500 focus:bg-white focus:outline-none transition-all shadow-sm font-inter"
               >
                 {hasSupportedTokens ? (
@@ -240,7 +280,9 @@ export function CollectionForm() {
               </label>
               <input
                 value={form.royaltyReceiver}
-                onChange={(e) => setForm({ ...form, royaltyReceiver: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, royaltyReceiver: e.target.value })
+                }
                 className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 px-5 py-4 text-base focus:border-brand-500 focus:bg-white focus:outline-none transition-all shadow-sm font-inter font-mono text-sm"
                 placeholder={publicKey || "G... (defaults to creator)"}
               />

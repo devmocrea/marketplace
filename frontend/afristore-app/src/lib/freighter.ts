@@ -44,9 +44,10 @@ export async function isFreighterInstalled(): Promise<boolean> {
  */
 export async function connectFreighter(): Promise<FreighterAccount> {
   const allowed = await setAllowed();
-  
+
   // Handle both boolean and { isAllowed: boolean }
-  const isAllowed = typeof allowed === "boolean" ? allowed : (allowed as any)?.isAllowed;
+  const isAllowed =
+    typeof allowed === "boolean" ? allowed : (allowed as any)?.isAllowed;
 
   if (!isAllowed) {
     throw new Error("Freighter access was denied by the user.");
@@ -55,15 +56,24 @@ export async function connectFreighter(): Promise<FreighterAccount> {
   const publicKey = await getPublicKey();
   if (!publicKey || typeof publicKey !== "string") {
     const error = (publicKey as any)?.error;
-    throw new Error(error ? `Freighter key error: ${error}` : "Failed to get public key from Freighter");
+    throw new Error(
+      error
+        ? `Freighter key error: ${error}`
+        : "Failed to get public key from Freighter",
+    );
   }
 
   const networkResult = await getNetworkDetails();
   if (!networkResult || (networkResult as any).error) {
-    throw new Error(`Freighter network error: ${(networkResult as any)?.error || "Unknown error"}`);
+    throw new Error(
+      `Freighter network error: ${(networkResult as any)?.error || "Unknown error"}`,
+    );
   }
 
-  const networkPassphrase = (networkResult as any).networkPassphrase ?? (networkResult as any).network_passphrase ?? '';
+  const networkPassphrase =
+    (networkResult as any).networkPassphrase ??
+    (networkResult as any).network_passphrase ??
+    "";
 
   return {
     publicKey,
@@ -78,7 +88,7 @@ export async function connectFreighter(): Promise<FreighterAccount> {
  */
 export async function signWithFreighter(
   txXdr: string,
-  networkPassphrase: string
+  networkPassphrase: string,
 ): Promise<string> {
   const result = await signTransaction(txXdr, { networkPassphrase });
 
@@ -89,7 +99,11 @@ export async function signWithFreighter(
   }
 
   const error = (result as any)?.error;
-  throw new Error(error ? `Freighter sign error: ${error}` : "Failed to sign transaction with Freighter");
+  throw new Error(
+    error
+      ? `Freighter sign error: ${error}`
+      : "Failed to sign transaction with Freighter",
+  );
 }
 
 // ── Get connected public key ──────────────────────────────────

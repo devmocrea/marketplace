@@ -5,9 +5,22 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { useCollectionDetail } from "@/hooks/useLaunchpad";
 import { useWalletContext } from "@/context/WalletContext";
-import { Loader2, ShieldCheck, User, Percent, Database, Package, ArrowLeft, Plus } from "lucide-react";
+import {
+  Loader2,
+  ShieldCheck,
+  User,
+  Percent,
+  Database,
+  Package,
+  ArrowLeft,
+  Plus,
+} from "lucide-react";
 
-export default function CollectionDetailClient({ address }: { address: string }) {
+export default function CollectionDetailClient({
+  address,
+}: {
+  address: string;
+}) {
   const { metadata, isLoading, error } = useCollectionDetail(address);
   const { publicKey } = useWalletContext();
 
@@ -32,11 +45,15 @@ export default function CollectionDetailClient({ address }: { address: string })
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 size={48} className="animate-spin text-brand-500" />
-              <p className="text-gray-500 font-medium font-inter">Fetching collection state...</p>
+              <p className="text-gray-500 font-medium font-inter">
+                Fetching collection state...
+              </p>
             </div>
           ) : error ? (
             <div className="rounded-3xl bg-red-50 p-12 text-center border border-red-100">
-              <p className="text-red-600 font-bold mb-2">Error loading collection</p>
+              <p className="text-red-600 font-bold mb-2">
+                Error loading collection
+              </p>
               <p className="text-red-500 text-sm mb-4">{error}</p>
             </div>
           ) : metadata ? (
@@ -61,7 +78,9 @@ export default function CollectionDetailClient({ address }: { address: string })
                         <User size={24} />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest font-inter">Creator</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest font-inter">
+                          Creator
+                        </p>
                         <p className="font-mono text-sm font-medium text-gray-900 truncate w-48">
                           {metadata.creator}
                         </p>
@@ -72,7 +91,9 @@ export default function CollectionDetailClient({ address }: { address: string })
                         <ShieldCheck size={24} />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest font-inter">Contract Address</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest font-inter">
+                          Contract Address
+                        </p>
                         <p className="font-mono text-sm font-medium text-gray-900 truncate w-48">
                           {address}
                         </p>
@@ -82,19 +103,25 @@ export default function CollectionDetailClient({ address }: { address: string })
                 </div>
 
                 <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-                  <h3 className="text-2xl font-display font-bold text-gray-900 mb-6">Inventory</h3>
+                  <h3 className="text-2xl font-display font-bold text-gray-900 mb-6">
+                    Inventory
+                  </h3>
                   <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
                     <div className="p-4 rounded-full bg-white mb-4">
                       <Package size={32} className="text-gray-300" />
                     </div>
-                    <p className="text-gray-500 font-inter">No items found in this collection yet.</p>
+                    <p className="text-gray-500 font-inter">
+                      No items found in this collection yet.
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-                  <h3 className="text-xl font-display font-bold text-gray-900 mb-6">Collection Stats</h3>
+                  <h3 className="text-xl font-display font-bold text-gray-900 mb-6">
+                    Collection Stats
+                  </h3>
                   <div className="space-y-6">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3 text-gray-500">
@@ -102,7 +129,8 @@ export default function CollectionDetailClient({ address }: { address: string })
                         <span className="font-inter font-medium">Supply</span>
                       </div>
                       <span className="font-display font-bold text-gray-900">
-                        {metadata.totalSupply} / {metadata.maxSupply === 0 ? "∞" : metadata.maxSupply}
+                        {metadata.totalSupply} /{" "}
+                        {metadata.maxSupply === 0 ? "∞" : metadata.maxSupply}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -117,7 +145,9 @@ export default function CollectionDetailClient({ address }: { address: string })
                   </div>
 
                   <div className="mt-10 pt-8 border-t border-gray-50 space-y-3">
-                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest font-inter">Mint &amp; redeem</p>
+                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest font-inter">
+                      Mint &amp; redeem
+                    </p>
                     <Link
                       href={`/launchpad/collections/${address}/mint`}
                       className="w-full flex items-center justify-center gap-2 rounded-2xl bg-brand-500 py-4 text-white font-bold hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20"
@@ -127,7 +157,8 @@ export default function CollectionDetailClient({ address }: { address: string })
                     </Link>
                     {isCreator && (
                       <p className="text-xs text-gray-500 font-inter text-center">
-                        As the creator you can mint on normal collections; lazy collections use signed vouchers.
+                        As the creator you can mint on normal collections; lazy
+                        collections use signed vouchers.
                       </p>
                     )}
                   </div>

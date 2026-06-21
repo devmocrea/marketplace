@@ -6,7 +6,11 @@
 
 import { useState } from "react";
 import { useWallet } from "@/hooks/useWallet";
-import { useLaunchpadAdminCheck, useLaunchpadAdminStats, useLaunchpadAdminActions } from "@/hooks/useLaunchpadAdmin";
+import {
+  useLaunchpadAdminCheck,
+  useLaunchpadAdminStats,
+  useLaunchpadAdminActions,
+} from "@/hooks/useLaunchpadAdmin";
 import { useLaunchpadCollections } from "@/hooks/useLaunchpad";
 import {
   Shield,
@@ -23,14 +27,24 @@ import {
   Palette,
   BarChart3,
   Crown,
-  Zap
+  Zap,
 } from "lucide-react";
 
 export default function LaunchpadAdminPage() {
   const { publicKey } = useWallet();
-  const { isAdmin, isLoading: isCheckingAdmin } = useLaunchpadAdminCheck(publicKey);
-  const { stats, isLoading: isLoadingStats, refresh: refreshStats } = useLaunchpadAdminStats();
-  const { transferAdmin, updateFee, isProcessing, error: actionError } = useLaunchpadAdminActions(publicKey);
+  const { isAdmin, isLoading: isCheckingAdmin } =
+    useLaunchpadAdminCheck(publicKey);
+  const {
+    stats,
+    isLoading: isLoadingStats,
+    refresh: refreshStats,
+  } = useLaunchpadAdminStats();
+  const {
+    transferAdmin,
+    updateFee,
+    isProcessing,
+    error: actionError,
+  } = useLaunchpadAdminActions(publicKey);
   const { collections } = useLaunchpadCollections();
 
   // Local state for admin actions
@@ -71,7 +85,10 @@ export default function LaunchpadAdminPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 size={48} className="animate-spin text-brand-500 mx-auto mb-4" />
+          <Loader2
+            size={48}
+            className="animate-spin text-brand-500 mx-auto mb-4"
+          />
           <p className="text-gray-500 font-medium">Checking admin access...</p>
         </div>
       </div>
@@ -87,7 +104,8 @@ export default function LaunchpadAdminPage() {
             Admin Access Required
           </h1>
           <p className="text-gray-500 font-inter">
-            You need to be the launchpad admin to access this page. Make sure you&apos;re connected with the correct wallet.
+            You need to be the launchpad admin to access this page. Make sure
+            you&apos;re connected with the correct wallet.
           </p>
         </div>
       </div>
@@ -124,7 +142,9 @@ export default function LaunchpadAdminPage() {
                 <Palette size={24} className="text-brand-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Total Collections</p>
+                <p className="text-sm font-medium text-gray-500">
+                  Total Collections
+                </p>
                 <p className="text-2xl font-display font-bold text-gray-900">
                   {isLoadingStats ? "..." : stats?.totalCollections || 0}
                 </p>
@@ -138,9 +158,11 @@ export default function LaunchpadAdminPage() {
                 <Users size={24} className="text-mint-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Active Creators</p>
+                <p className="text-sm font-medium text-gray-500">
+                  Active Creators
+                </p>
                 <p className="text-2xl font-display font-bold text-gray-900">
-                  {new Set(collections.map(c => c.creator)).size}
+                  {new Set(collections.map((c) => c.creator)).size}
                 </p>
               </div>
             </div>
@@ -152,9 +174,13 @@ export default function LaunchpadAdminPage() {
                 <DollarSign size={24} className="text-terracotta-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Platform Fee</p>
+                <p className="text-sm font-medium text-gray-500">
+                  Platform Fee
+                </p>
                 <p className="text-2xl font-display font-bold text-gray-900">
-                  {isLoadingStats ? "..." : `${(stats?.platformFeeBps || 0) / 100}%`}
+                  {isLoadingStats
+                    ? "..."
+                    : `${(stats?.platformFeeBps || 0) / 100}%`}
                 </p>
               </div>
             </div>
@@ -166,8 +192,12 @@ export default function LaunchpadAdminPage() {
                 <Zap size={24} className="text-amber-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Collection Types</p>
-                <p className="text-2xl font-display font-bold text-gray-900">4</p>
+                <p className="text-sm font-medium text-gray-500">
+                  Collection Types
+                </p>
+                <p className="text-2xl font-display font-bold text-gray-900">
+                  4
+                </p>
               </div>
             </div>
           </div>
@@ -222,7 +252,11 @@ export default function LaunchpadAdminPage() {
                     disabled={isProcessing || !newAdminAddress.trim()}
                     className="flex items-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                    {isProcessing ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Save size={16} />
+                    )}
                     Transfer
                   </button>
                   <button
@@ -309,10 +343,18 @@ export default function LaunchpadAdminPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={handleUpdateFee}
-                    disabled={isProcessing || !newFeeReceiver.trim() || !newFeeBps.trim()}
+                    disabled={
+                      isProcessing ||
+                      !newFeeReceiver.trim() ||
+                      !newFeeBps.trim()
+                    }
                     className="flex items-center gap-2 px-4 py-2 bg-terracotta-500 text-white rounded-lg hover:bg-terracotta-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                    {isProcessing ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Save size={16} />
+                    )}
                     Update
                   </button>
                   <button
@@ -353,19 +395,28 @@ export default function LaunchpadAdminPage() {
 
           <div className="space-y-4">
             {collections.slice(0, 5).map((collection) => (
-              <div key={collection.address} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div
+                key={collection.address}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+              >
                 <div className="flex items-center gap-4">
-                  <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    collection.kind.startsWith('Lazy') ? 'bg-amber-100 text-amber-700' : 'bg-brand-100 text-brand-700'
-                  }`}>
+                  <div
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      collection.kind.startsWith("Lazy")
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-brand-100 text-brand-700"
+                    }`}
+                  >
                     {collection.kind}
                   </div>
                   <div>
                     <p className="font-mono text-sm text-gray-900">
-                      {collection.address.slice(0, 12)}...{collection.address.slice(-8)}
+                      {collection.address.slice(0, 12)}...
+                      {collection.address.slice(-8)}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Creator: {collection.creator.slice(0, 8)}...{collection.creator.slice(-6)}
+                      Creator: {collection.creator.slice(0, 8)}...
+                      {collection.creator.slice(-6)}
                     </p>
                   </div>
                 </div>
@@ -373,7 +424,9 @@ export default function LaunchpadAdminPage() {
               </div>
             ))}
             {collections.length === 0 && (
-              <p className="text-gray-500 text-center py-8">No collections deployed yet.</p>
+              <p className="text-gray-500 text-center py-8">
+                No collections deployed yet.
+              </p>
             )}
           </div>
         </div>

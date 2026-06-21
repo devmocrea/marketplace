@@ -33,7 +33,7 @@ module.exports = {
           200: "#f4d5ae",
           300: "#ecb878",
           400: "#e49440",
-          500: "#de7a1e",   // primary orange
+          500: "#de7a1e", // primary orange
           600: "#cf6015",
           700: "#ac4914",
           800: "#8a3a17",
@@ -52,7 +52,7 @@ module.exports = {
           200: "#f8c5ab",
           300: "#f49d76",
           400: "#ef6d3e",
-          500: "#eb4f1b",   // primary terracotta
+          500: "#eb4f1b", // primary terracotta
           600: "#dc3611",
           700: "#b62710",
           800: "#912116",
@@ -66,7 +66,7 @@ module.exports = {
           200: "#b0eacb",
           300: "#7dd9ac",
           400: "#48c189",
-          500: "#26a76e",   // primary mint
+          500: "#26a76e", // primary mint
           600: "#178758",
           700: "#136c49",
           800: "#12563c",
@@ -98,8 +98,8 @@ module.exports = {
         "fade-in-left": "fadeInLeft 0.7s ease-out forwards",
         "fade-in-right": "fadeInRight 0.7s ease-out forwards",
         "scale-in": "scaleIn 0.6s ease-out forwards",
-        "float": "float 6s ease-in-out infinite",
-        "shimmer": "shimmer 2s linear infinite",
+        float: "float 6s ease-in-out infinite",
+        shimmer: "shimmer 2s linear infinite",
         "pulse-glow": "pulseGlow 3s ease-in-out infinite",
         "slide-up": "slideUp 0.5s ease-out forwards",
       },
@@ -142,12 +142,17 @@ module.exports = {
         },
       },
       backgroundImage: {
-        "african-gradient": "linear-gradient(135deg, #3d1608 0%, #713116 25%, #8a3a17 50%, #de7a1e 100%)",
-        "hero-gradient": "linear-gradient(180deg, rgba(26,17,8,0.92) 0%, rgba(26,17,8,0.7) 40%, rgba(26,17,8,0.85) 100%)",
-        "card-gradient": "linear-gradient(180deg, transparent 0%, rgba(26,17,8,0.9) 100%)",
+        "african-gradient":
+          "linear-gradient(135deg, #3d1608 0%, #713116 25%, #8a3a17 50%, #de7a1e 100%)",
+        "hero-gradient":
+          "linear-gradient(180deg, rgba(26,17,8,0.92) 0%, rgba(26,17,8,0.7) 40%, rgba(26,17,8,0.85) 100%)",
+        "card-gradient":
+          "linear-gradient(180deg, transparent 0%, rgba(26,17,8,0.9) 100%)",
         "mint-gradient": "linear-gradient(135deg, #26a76e 0%, #178758 100%)",
-        "terracotta-gradient": "linear-gradient(135deg, #eb4f1b 0%, #dc3611 100%)",
-        "warm-gradient": "linear-gradient(135deg, #de7a1e 0%, #eb4f1b 50%, #dc3611 100%)",
+        "terracotta-gradient":
+          "linear-gradient(135deg, #eb4f1b 0%, #dc3611 100%)",
+        "warm-gradient":
+          "linear-gradient(135deg, #de7a1e 0%, #eb4f1b 50%, #dc3611 100%)",
       },
     },
   },

@@ -39,7 +39,7 @@ const TABS: { key: Tab; label: string }[] = [
 const metadataCache = new Map<string, ArtworkMetadata | null>();
 
 async function getCachedMetadata(
-  cid?: string
+  cid?: string,
 ): Promise<ArtworkMetadata | null> {
   if (!cid) return null;
   if (metadataCache.has(cid)) return metadataCache.get(cid) ?? null;
@@ -118,8 +118,9 @@ function AuctionCard({ auction }: { auction: Auction }) {
 
         {/* Status badge */}
         <span
-          className={`absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${STATUS_COLOR[auction.status] ?? ""
-            }`}
+          className={`absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+            STATUS_COLOR[auction.status] ?? ""
+          }`}
         >
           {auction.status}
         </span>
@@ -176,7 +177,7 @@ export default function AuctionsPage() {
           if (!a.metadata_cid) return;
           const meta = await getCachedMetadata(a.metadata_cid);
           entries.push([a.metadata_cid, meta]);
-        })
+        }),
       );
       if (!cancelled) setMetadataMap(new Map(entries));
     };
@@ -236,10 +237,11 @@ export default function AuctionsPage() {
                   <button
                     key={key}
                     onClick={() => setTab(key)}
-                    className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${isActive
+                    className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                      isActive
                         ? "bg-brand-500 text-white shadow-md shadow-brand-500/20"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
+                    }`}
                   >
                     {label}
                     {key === "all" && (

@@ -51,7 +51,7 @@ export function mapSorobanErrorMessage(raw: string): string | null {
 
 export function getReadableErrorMessage(
   error: unknown,
-  fallback = "Something went wrong. Please try again."
+  fallback = "Something went wrong. Please try again.",
 ): string {
   if (error instanceof Error) {
     const mapped = mapSorobanErrorMessage(error.message);

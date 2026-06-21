@@ -120,7 +120,9 @@ export function useArtistListings(artistPublicKey: string | null) {
       try {
         const raw = await fetchArtistListings(artistPublicKey);
         if (raw && raw.length >= 0) {
-          setListings(raw.sort((a: any, b: any) => b.created_at - a.created_at));
+          setListings(
+            raw.sort((a: any, b: any) => b.created_at - a.created_at),
+          );
           return;
         }
       } catch (e) {
@@ -183,7 +185,7 @@ export function useCreateListing(artistPublicKey: string | null) {
           input.price,
           token.address,
           input.collectionAddress,
-          input.nftTokenId
+          input.nftTokenId,
         );
 
         // Track successful listing creation

@@ -61,7 +61,9 @@ export function FeaturedListings() {
           return {
             listing,
             metadata: meta,
-            imageUrl: meta?.image ? cidToGatewayUrl(meta.image) : "/placeholder-art.svg",
+            imageUrl: meta?.image
+              ? cidToGatewayUrl(meta.image)
+              : "/placeholder-art.svg",
           };
         } catch {
           return {
@@ -70,7 +72,7 @@ export function FeaturedListings() {
             imageUrl: "/placeholder-art.svg",
           };
         }
-      })
+      }),
     ).then((items) => {
       if (!cancelled) {
         setEnriched(items);
@@ -114,8 +116,8 @@ export function FeaturedListings() {
               Featured <span className="text-brand-500">Artworks</span>
             </h2>
             <p className="mt-3 max-w-lg text-base text-gray-500">
-              Fresh listings from across the continent appear here as soon as artists publish
-              them.
+              Fresh listings from across the continent appear here as soon as
+              artists publish them.
             </p>
           </div>
 
@@ -148,8 +150,9 @@ export function FeaturedListings() {
               No live featured listings yet
             </h3>
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-gray-500 sm:text-base">
-              The homepage will highlight live inventory as soon as artists publish active
-              listings. Nothing is being padded with sample artwork.
+              The homepage will highlight live inventory as soon as artists
+              publish active listings. Nothing is being padded with sample
+              artwork.
             </p>
           </div>
         ) : (
@@ -171,7 +174,10 @@ export function FeaturedListings() {
                       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl corner-accent">
                         <Image
                           src={item.imageUrl}
-                          alt={item.metadata?.title ?? `Artwork #${item.listing.listing_id}`}
+                          alt={
+                            item.metadata?.title ??
+                            `Artwork #${item.listing.listing_id}`
+                          }
                           fill
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
                           unoptimized
@@ -180,7 +186,8 @@ export function FeaturedListings() {
 
                         <div className="absolute bottom-0 left-0 right-0 translate-y-4 p-5 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
                           <h3 className="font-display text-lg font-bold text-white">
-                            {item.metadata?.title ?? `Artwork #${item.listing.listing_id}`}
+                            {item.metadata?.title ??
+                              `Artwork #${item.listing.listing_id}`}
                           </h3>
                           <p className="mt-1 text-sm text-brand-200">
                             {item.metadata?.artist ?? "Unknown Artist"}
@@ -218,7 +225,10 @@ export function FeaturedListings() {
                 >
                   <Image
                     src={item.imageUrl}
-                    alt={item.metadata?.title ?? `Artwork #${item.listing.listing_id}`}
+                    alt={
+                      item.metadata?.title ??
+                      `Artwork #${item.listing.listing_id}`
+                    }
                     fill
                     className="object-cover"
                     unoptimized
@@ -226,7 +236,8 @@ export function FeaturedListings() {
                   <div className="absolute inset-0 bg-card-gradient" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="font-display font-bold text-white">
-                      {item.metadata?.title ?? `Artwork #${item.listing.listing_id}`}
+                      {item.metadata?.title ??
+                        `Artwork #${item.listing.listing_id}`}
                     </h3>
                     <p className="text-sm text-brand-300">
                       {item.metadata?.artist ?? "Unknown Artist"}

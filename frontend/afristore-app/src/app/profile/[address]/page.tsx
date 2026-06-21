@@ -1,31 +1,33 @@
-import { Metadata } from 'next'
-import ProfileClient from './ProfileClient'
-import { fetchRoyaltyStats, fetchArtistListings } from '@/lib/indexer'
-import { config } from '@/lib/config'
+import { Metadata } from "next";
+import ProfileClient from "./ProfileClient";
+import { fetchRoyaltyStats, fetchArtistListings } from "@/lib/indexer";
+import { config } from "@/lib/config";
 
 interface ProfilePageProps {
   params: Promise<{
-    address: string
-  }>
+    address: string;
+  }>;
 }
 
-export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
-  const { address } = await params
-  const baseUrl = config.baseUrl
-  
+export async function generateMetadata({
+  params,
+}: ProfilePageProps): Promise<Metadata> {
+  const { address } = await params;
+  const baseUrl = config.baseUrl;
+
   try {
     // Fetch artist data for metadata
     const [royaltyStats, artistListings] = await Promise.all([
       fetchRoyaltyStats(address),
-      fetchArtistListings(address)
-    ])
+      fetchArtistListings(address),
+    ]);
 
-    const totalVolume = royaltyStats?.totalEarned || '0'
-    const artworkCount = artistListings?.length || 0
-    const totalSales = royaltyStats?.payoutCount || 0
+    const totalVolume = royaltyStats?.totalEarned || "0";
+    const artworkCount = artistListings?.length || 0;
+    const totalSales = royaltyStats?.payoutCount || 0;
 
-    const title = `African Artist Profile | ${address.slice(0, 6)}…${address.slice(-4)} | Afristore`
-    const description = `Discover African digital art by ${address.slice(0, 6)}…${address.slice(-4)}. ${artworkCount} artworks created, ${totalSales} artworks sold, ${totalVolume} XLM in total volume. Explore unique NFT collections on the Stellar blockchain.`
+    const title = `African Artist Profile | ${address.slice(0, 6)}…${address.slice(-4)} | Afristore`;
+    const description = `Discover African digital art by ${address.slice(0, 6)}…${address.slice(-4)}. ${artworkCount} artworks created, ${totalSales} artworks sold, ${totalVolume} XLM in total volume. Explore unique NFT collections on the Stellar blockchain.`;
 
     return {
       title,
@@ -33,7 +35,7 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
       openGraph: {
         title,
         description,
-        type: 'profile',
+        type: "profile",
         url: `${baseUrl}/profile/${address}`,
         images: [
           {
@@ -43,44 +45,44 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
             alt: `Artist Profile - ${address.slice(0, 6)}…${address.slice(-4)}`,
           },
         ],
-        siteName: 'Afristore - African Art Marketplace',
+        siteName: "Afristore - African Art Marketplace",
       },
       twitter: {
-        card: 'summary_large_image',
+        card: "summary_large_image",
         title,
         description,
         images: [`${baseUrl}/api/og/artist/${address}`],
-        creator: '@afristore',
-        site: '@afristore',
+        creator: "@afristore",
+        site: "@afristore",
       },
       alternates: {
         canonical: `${baseUrl}/profile/${address}`,
       },
       keywords: [
-        'African art',
-        'NFT',
-        'Stellar blockchain',
-        'Digital art',
-        'Artist profile',
+        "African art",
+        "NFT",
+        "Stellar blockchain",
+        "Digital art",
+        "Artist profile",
         address.slice(0, 6),
         address.slice(-4),
-        'Crypto art',
-        'Blockchain art',
+        "Crypto art",
+        "Blockchain art",
       ],
       authors: [{ name: `${address.slice(0, 6)}…${address.slice(-4)}` }],
-      category: 'art',
-    }
+      category: "art",
+    };
   } catch (error) {
-    console.error('Failed to generate metadata for artist profile:', error)
-    
+    console.error("Failed to generate metadata for artist profile:", error);
+
     return {
       title: `Artist Profile | ${address.slice(0, 6)}…${address.slice(-4)} | Afristore`,
       description: `Discover African digital art on the Stellar blockchain. Explore unique NFT collections and support African artists.`,
-    }
+    };
   }
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-  const { address } = await params
-  return <ProfileClient address={address} />
+  const { address } = await params;
+  return <ProfileClient address={address} />;
 }

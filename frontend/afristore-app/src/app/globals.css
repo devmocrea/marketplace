@@ -2,7 +2,7 @@
    globals.css — Afristore: African Art Marketplace
 ───────────────────────────────────────────────────────────── */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -10,7 +10,7 @@
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
@@ -42,7 +42,6 @@
 }
 
 @layer components {
-
   /* ── African Pattern Divider ─────────────────────────────── */
   .african-divider {
     position: relative;
@@ -52,34 +51,37 @@
   }
 
   .african-divider::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 100%;
-    background:
-      repeating-linear-gradient(90deg,
-        transparent,
-        transparent 8px,
-        #de7a1e 8px,
-        #de7a1e 10px);
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 8px,
+      #de7a1e 8px,
+      #de7a1e 10px
+    );
     opacity: 0.35;
   }
 
   .african-divider::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        #de7a1e 20%,
-        #8a3a17 50%,
-        #de7a1e 80%,
-        transparent 100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      #de7a1e 20%,
+      #8a3a17 50%,
+      #de7a1e 80%,
+      transparent 100%
+    );
     transform: translateY(-50%);
     box-shadow: 0 2px 4px rgba(222, 122, 30, 0.25);
   }
@@ -87,16 +89,20 @@
   /* ── Kente Pattern Border ────────────────────────────────── */
   .kente-border {
     background-image:
-      repeating-linear-gradient(0deg,
+      repeating-linear-gradient(
+        0deg,
         #de7a1e 0px,
         #de7a1e 2px,
         transparent 2px,
-        transparent 6px),
-      repeating-linear-gradient(90deg,
+        transparent 6px
+      ),
+      repeating-linear-gradient(
+        90deg,
         #eb4f1b 0px,
         #eb4f1b 2px,
         transparent 2px,
-        transparent 6px);
+        transparent 6px
+      );
     background-size: 6px 6px;
     background-position: 0 0;
   }
@@ -107,7 +113,7 @@
   }
 
   .adinkra-pattern::before {
-    content: '◆ ✦ ◆ ✦ ◆ ✦ ◆ ✦ ◆';
+    content: "◆ ✦ ◆ ✦ ◆ ✦ ◆ ✦ ◆";
     position: absolute;
     top: -12px;
     left: 50%;
@@ -136,11 +142,13 @@
 
   /* ── Shimmer text effect ─────────────────────────────────── */
   .shimmer-text {
-    background: linear-gradient(110deg,
-        #ecb878 20%,
-        #f4d5ae 40%,
-        #de7a1e 60%,
-        #ecb878 80%);
+    background: linear-gradient(
+      110deg,
+      #ecb878 20%,
+      #f4d5ae 40%,
+      #de7a1e 60%,
+      #ecb878 80%
+    );
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -150,7 +158,9 @@
 
   /* ── Hover lift effect ───────────────────────────────────── */
   .hover-lift {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
   }
 
   .hover-lift:hover {
@@ -165,7 +175,7 @@
 
   .corner-accent::before,
   .corner-accent::after {
-    content: '';
+    content: "";
     position: absolute;
     width: 24px;
     height: 24px;
@@ -190,24 +200,38 @@
   /* ── Tribal pattern strip ────────────────────────────────── */
   .tribal-strip {
     height: 6px;
-    background: repeating-linear-gradient(90deg,
-        #de7a1e 0px,
-        #de7a1e 12px,
-        #eb4f1b 12px,
-        #eb4f1b 24px,
-        #26a76e 24px,
-        #26a76e 36px,
-        #c9a96e 36px,
-        #c9a96e 48px);
+    background: repeating-linear-gradient(
+      90deg,
+      #de7a1e 0px,
+      #de7a1e 12px,
+      #eb4f1b 12px,
+      #eb4f1b 24px,
+      #26a76e 24px,
+      #26a76e 36px,
+      #c9a96e 36px,
+      #c9a96e 48px
+    );
   }
 
   /* ── Mudcloth-inspired pattern ───────────────────────────── */
   .mudcloth-bg {
     background-color: #1a1108;
     background-image:
-      radial-gradient(circle at 25% 25%, rgba(222, 122, 30, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, rgba(235, 79, 27, 0.04) 0%, transparent 50%),
-      radial-gradient(circle at 50% 50%, rgba(38, 167, 110, 0.03) 0%, transparent 60%);
+      radial-gradient(
+        circle at 25% 25%,
+        rgba(222, 122, 30, 0.05) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 75% 75%,
+        rgba(235, 79, 27, 0.04) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 50%,
+        rgba(38, 167, 110, 0.03) 0%,
+        transparent 60%
+      );
   }
 }
 
