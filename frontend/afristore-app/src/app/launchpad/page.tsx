@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useLaunchpadCollections } from "@/hooks/useLaunchpad";
 import { useWalletContext } from "@/context/WalletContext";
@@ -12,8 +11,6 @@ import {
   Zap,
   ExternalLink,
   TrendingUp,
-  Users,
-  Star,
   Shield,
 } from "lucide-react";
 
@@ -21,7 +18,6 @@ export default function LaunchpadPage() {
   const { collections, isLoading, error } = useLaunchpadCollections();
   const { publicKey, isConnected } = useWalletContext();
   const { isAdmin } = useLaunchpadAdminCheck(publicKey);
-  const [featuredCollections, setFeaturedCollections] = useState<any[]>([]);
 
   // Get some featured collections (first 3 for now)
   const featured = collections.slice(0, 3);
