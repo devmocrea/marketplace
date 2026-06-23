@@ -5,6 +5,8 @@
 export const config = {
   contractId: process.env.NEXT_PUBLIC_CONTRACT_ID ?? "",
   launchpadContractId: process.env.NEXT_PUBLIC_LAUNCHPAD_CONTRACT_ID ?? "",
+  splitterWasmHash:
+    process.env.NEXT_PUBLIC_SPLITTER_WASM_HASH ?? "",
   /** Base URL for the Afristore indexer HTTP API (no trailing slash). */
   indexerUrl: (
     process.env.NEXT_PUBLIC_INDEXER_URL ?? "http://localhost:4000"
