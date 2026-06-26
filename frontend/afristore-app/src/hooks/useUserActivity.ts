@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   getWalletActivity,
   getRoyaltyStats,
+  getListingActivity,
   ActivityEvent,
 } from "@/lib/indexer";
 
@@ -52,9 +53,7 @@ export function useListingActivity(listingId: number | null) {
     setIsLoading(true);
     setError(null);
     try {
-      const history = await import("@/lib/indexer").then((m) =>
-        m.getListingActivity(listingId),
-      );
+      const history = await getListingActivity(listingId);
       setActivities(history);
     } catch (err: unknown) {
       setError(
