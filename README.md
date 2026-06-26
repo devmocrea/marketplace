@@ -94,6 +94,8 @@ cd scripts/deploy
 
 Instead of starting the indexer and frontend in separate terminals, we use a unified startup script at the root:
 
+> **Important:** Run `npm install` at the **repository root** before `npm run dev`. This installs the root-level `concurrently` dev dependency. If you skip this step, `npm run dev` will fail with `sh: concurrently: command not found`.
+
 ```bash
 # 1. Ensure you have copied the environment files:
 cd indexer && cp .env.example .env
@@ -103,8 +105,10 @@ cd ../..
 # 2. Run the database migrations for the indexer:
 cd indexer && npx prisma migrate deploy && cd ..
 
-# 3. Install dependencies and start all services concurrently:
+# 3. Install root dependencies (required for concurrently):
 npm install
+
+# 4. Start all services concurrently:
 npm run dev
 ```
 
