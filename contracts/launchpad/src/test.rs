@@ -1044,7 +1044,7 @@ fn get_all_collections_returns_all_deployed() {
         &BytesN::from_array(&env, &[0xD2u8; 32]),
     );
 
-    let all = client.get_all_collections();
+    let all = client.get_collections(&0u32, &100u32);
     assert_eq!(all.len(), 2);
 }
 
