@@ -84,7 +84,7 @@ export default function ExplorePage() {
       if (debouncedSearch.trim()) opts.search = debouncedSearch.trim();
 
       const res = await fetchListings(opts);
-      const rows = Array.isArray(res.listings) ? (res.listings as Listing[]) : [];
+      const rows = Array.isArray(res.listings) ? res.listings : [];
       if (rows.length > 0) {
         setAllListings(rows);
       } else {
