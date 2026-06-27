@@ -79,7 +79,7 @@ export default function ListingInteractiveArea({
   const [offerAmount, setOfferAmount] = useState("");
   const [offerSuccess, setOfferSuccess] = useState(false);
 
-  const artist = listing?.collection || auction?.creator;
+  const artist = listing?.artist || auction?.creator;
   const isOwn = publicKey === artist;
   const status = listing?.status || auction?.status;
   const isActive = status === "Active";
