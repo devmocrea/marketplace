@@ -1015,7 +1015,7 @@ impl MarketplaceContract {
         }
         let fee_bps = crate::storage::get_protocol_fee_bps_storage(env).unwrap_or(0);
         if let Some(t) = crate::storage::get_treasury_storage(env) {
-            let fee = payout * fee_bps as i128 / 10_000;
+            let fee = amount * fee_bps as i128 / 10_000;
             token.transfer(&env.current_contract_address(), &t, &fee);
             payout -= fee;
         }
