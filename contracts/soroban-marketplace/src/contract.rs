@@ -544,6 +544,11 @@ impl MarketplaceContract {
         if !Self::is_token_whitelisted(&env, &token) {
             panic_with_error!(&env, MarketplaceError::Unauthorized);
         }
+        // A duration of less than a minute is not practical.
+        if duration < 60 {
+            panic_with_error!(&env, MarketplaceError::InvalidAuctionDuration);
+        }
+
         let auction_id = increment_auction_count(&env);
         let end_time = env.ledger().timestamp() + duration;
         let auction = Auction {
