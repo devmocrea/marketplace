@@ -178,8 +178,7 @@ impl NftStaking {
         if pending > 0 {
             let reward_token_addr = get_reward_token(&env)
                 .unwrap_or_else(|| panic_with_error!(&env, StakingError::NotInitialized));
-            let token_client =
-                soroban_sdk::token::TokenClient::new(&env, &reward_token_addr);
+            let token_client = soroban_sdk::token::TokenClient::new(&env, &reward_token_addr);
             let balance = token_client.balance(&env.current_contract_address());
             if balance < pending {
                 panic_with_error!(&env, StakingError::InsufficientRewardBalance);
