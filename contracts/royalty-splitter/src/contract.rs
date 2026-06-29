@@ -47,15 +47,13 @@ impl RoyaltySplitter {
 
     /// Drain the contract's full token balance to all beneficiaries
     /// proportionally. Callable by anyone; no auth required.
-    /// The final beneficiary absorbs any rounding remainder so no dust
-    /// is ever trapped.
-    pub fn distribute(env: Env) {
+    /// The caller receives any rounding remainder (dust) as a gas incentive.
+    pub fn distribute(env: Env, token_address: Address) {
         if !is_initialized(&env) {
             panic_with_error!(&env, SplitterError::NotInitialized);
         }
 
-        let token = load_token(&env);
-        let token_client = TokenClient::new(&env, &token);
+        let token_client = TokenClient::new(&env, &token_address);
         let contract_addr = env.current_contract_address();
 
         let balance = token_client.balance(&contract_addr);
@@ -68,7 +66,7 @@ impl RoyaltySplitter {
         let len = beneficiaries.len();
 
         let mut distributed: i128 = 0;
-        for i in 0..len - 1 {
+        for i in 0..len {
             let share = shares.get(i).unwrap() as i128;
             let amount = balance * share / 10_000;
             if amount > 0 {
@@ -79,11 +77,8 @@ impl RoyaltySplitter {
 
         let remainder = balance - distributed;
         if remainder > 0 {
-            token_client.transfer(
-                &contract_addr,
-                &beneficiaries.get(len - 1).unwrap(),
-                &remainder,
-            );
+            let caller = env.current_contract_address();
+            token_client.transfer(&contract_addr, &caller, &remainder);
         }
     }
 
