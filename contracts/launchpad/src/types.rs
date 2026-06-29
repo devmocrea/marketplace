@@ -56,4 +56,6 @@ pub enum DataKey {
     WasmStaking,
     /// Maps an NFT collection address to its staking pool clone
     StakingPoolByNft(Address),
+    /// WASM hash for RoyaltySplitter clone deployments
+    WasmRoyaltySplitter,
 }
