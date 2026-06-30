@@ -358,10 +358,7 @@ fn test_get_share_for_nonexistent_beneficiary() {
         &vec![&env, 5_000_u32, 5_000_u32],
     );
 
-    let err = client
-        .try_get_share(&charlie)
-        .unwrap_err()
-        .unwrap();
+    let err = client.try_get_share(&charlie).unwrap_err().unwrap();
 
     assert_eq!(err, SplitterError::BeneficiaryNotFound.into());
 }
