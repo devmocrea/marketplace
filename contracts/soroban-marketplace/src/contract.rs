@@ -31,6 +31,8 @@ use crate::{
 #[contract]
 pub struct MarketplaceContract;
 
+const MIN_DURATION_SECONDS: u64 = 60;
+
 #[contractimpl]
 impl MarketplaceContract {
     // ── Admin & Global Configuration ───────────────────────
@@ -223,6 +225,7 @@ impl MarketplaceContract {
         token: Address,
         collection: Address,
         token_id: u64,
+        amount: u64,
         recipients: Vec<Recipient>,
     ) -> u64 {
         if crate::storage::is_paused(&env) {
@@ -267,6 +270,7 @@ impl MarketplaceContract {
             token,
             collection,
             token_id,
+            amount,
             recipients,
             status: ListingStatus::Active,
             owner: None,
@@ -414,7 +418,7 @@ impl MarketplaceContract {
             true,
         );
 
-        // Transfer the NFT
+        // Transfer the NFT (ERC-1155 requires amount as 5th arg; ERC-721 amount is always 1)
         env.invoke_contract::<()>(
             &listing.collection,
             &soroban_sdk::Symbol::new(&env, "transfer_from"),
@@ -423,7 +427,8 @@ impl MarketplaceContract {
                 env.current_contract_address().into_val(&env),
                 listing.artist.into_val(&env),
                 buyer.into_val(&env),
-                listing.token_id.into_val(&env)
+                listing.token_id.into_val(&env),
+                listing.amount.into_val(&env)
             ],
         );
 
@@ -527,6 +532,7 @@ impl MarketplaceContract {
         token: Address,
         collection: Address,
         token_id: u64,
+        amount: u64,
         reserve_price: i128,
         duration: u64,
         recipients: Vec<Recipient>,
@@ -544,6 +550,11 @@ impl MarketplaceContract {
         if !Self::is_token_whitelisted(&env, &token) {
             panic_with_error!(&env, MarketplaceError::Unauthorized);
         }
+        // A duration of less than a minute is not practical.
+        if duration < MIN_DURATION_SECONDS {
+            panic_with_error!(&env, MarketplaceError::InvalidAuctionDuration);
+        }
+
         let auction_id = increment_auction_count(&env);
         let end_time = env.ledger().timestamp() + duration;
         let auction = Auction {
@@ -552,6 +563,7 @@ impl MarketplaceContract {
             token: token.clone(),
             collection: collection.clone(),
             token_id,
+            amount,
             reserve_price,
             highest_bid: 0,
             highest_bidder: None,
@@ -665,7 +677,7 @@ impl MarketplaceContract {
                     false,
                 );
 
-                // Transfer the NFT
+                // Transfer the NFT (ERC-1155 requires amount as 5th arg; ERC-721 amount is always 1)
                 env.invoke_contract::<()>(
                     &auction.collection,
                     &soroban_sdk::Symbol::new(&env, "transfer_from"),
@@ -674,7 +686,8 @@ impl MarketplaceContract {
                         env.current_contract_address().into_val(&env),
                         auction.creator.into_val(&env),
                         winner.into_val(&env),
-                        auction.token_id.into_val(&env)
+                        auction.token_id.into_val(&env),
+                        auction.amount.into_val(&env)
                     ],
                 );
 
@@ -851,7 +864,7 @@ impl MarketplaceContract {
             false,
         );
 
-        // Transfer the NFT
+        // Transfer the NFT (ERC-1155 requires amount as 5th arg; ERC-721 amount is always 1)
         env.invoke_contract::<()>(
             &listing.collection,
             &soroban_sdk::Symbol::new(&env, "transfer_from"),
@@ -860,7 +873,8 @@ impl MarketplaceContract {
                 env.current_contract_address().into_val(&env),
                 artist.into_val(&env),
                 offer.offerer.into_val(&env),
-                listing.token_id.into_val(&env)
+                listing.token_id.into_val(&env),
+                listing.amount.into_val(&env)
             ],
         );
         let accepted_offerer = offer.offerer.clone();
