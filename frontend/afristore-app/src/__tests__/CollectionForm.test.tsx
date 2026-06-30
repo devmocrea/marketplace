@@ -72,7 +72,7 @@ import { CollectionForm } from "@/components/CollectionForm";
 describe("CollectionForm", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPublicKey = "GPUBKEY";
+    mockPublicKey = "G" + "A".repeat(55);
   });
 
   it("renders the collection name input", () => {
