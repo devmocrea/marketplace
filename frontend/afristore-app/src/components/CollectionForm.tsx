@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useDeployCollection,
   DeployCollectionInput,
@@ -9,15 +9,10 @@ import { useWalletContext } from "@/context/WalletContext";
 import { Loader2, Rocket, CheckCircle, ArrowRight } from "lucide-react";
 import { GuardButton } from "./WalletGuard";
 import { CollectionKind } from "@/lib/launchpad";
-import { DEFAULT_TOKEN } from "@/config/tokens";
-import { useSupportedTokens } from "@/hooks/useSupportedTokens";
-import { getDefaultSupportedToken } from "@/lib/token-support";
 
 export function CollectionForm() {
   const { publicKey } = useWalletContext();
   const { deploy, isDeploying, error } = useDeployCollection(publicKey);
-  const { tokens: supportedTokens } = useSupportedTokens();
-  const hasSupportedTokens = supportedTokens.length > 0;
 
   const [successAddress, setSuccessAddress] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -27,23 +22,7 @@ export function CollectionForm() {
     maxSupply: 10000,
     royaltyBps: 500, // 5%
     royaltyReceiver: publicKey || "",
-    currencyAddress: DEFAULT_TOKEN.address,
   });
-
-  useEffect(() => {
-    if (supportedTokens.length === 0) {
-      return;
-    }
-
-    if (
-      !supportedTokens.some((token) => token.address === form.currencyAddress)
-    ) {
-      setForm((current) => ({
-        ...current,
-        currencyAddress: getDefaultSupportedToken(supportedTokens).address,
-      }));
-    }
-  }, [form.currencyAddress, supportedTokens]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +32,25 @@ export function CollectionForm() {
       ...form,
       royaltyReceiver: form.royaltyReceiver || publicKey,
     };
+
+    // If it's a lazy collection, we need the pubkey bytes
+    if (form.kind.startsWith("LazyMint")) {
+      try {
+        // Dynamically import StrKey to avoid Node deps in initial bundle
+        const sdk = await import("@stellar/stellar-sdk");
+        const decoded = sdk.StrKey.decodeEd25519PublicKey(publicKey);
+        input.creatorPubkeyBytes = Buffer.from(decoded);
+      } catch (err) {
+        console.error("Failed to decode public key", err);
+        return;
+      }
+    }
+
+    const addr = await deploy(input);
+    if (addr) {
+      setSuccessAddress(addr);
+    }
+  };
 
     // If it's a lazy collection, we need the pubkey bytes
     if (form.kind.startsWith("LazyMint")) {
@@ -249,31 +247,6 @@ export function CollectionForm() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-bold text-gray-950 uppercase tracking-wider font-inter">
-                Fee Payment Token *
-              </label>
-              <select
-                required
-                disabled={!hasSupportedTokens}
-                value={form.currencyAddress}
-                onChange={(e) =>
-                  setForm({ ...form, currencyAddress: e.target.value })
-                }
-                className="w-full appearance-none rounded-2xl border border-gray-200 bg-gray-50/50 px-5 py-4 text-base focus:border-brand-500 focus:bg-white focus:outline-none transition-all shadow-sm font-inter"
-              >
-                {hasSupportedTokens ? (
-                  supportedTokens.map((token) => (
-                    <option key={token.address} value={token.address}>
-                      {token.name} ({token.symbol})
-                    </option>
-                  ))
-                ) : (
-                  <option value="">No supported tokens available</option>
-                )}
-              </select>
-            </div>
-
             <div className="sm:col-span-2 space-y-2">
               <label className="block text-sm font-bold text-gray-950 uppercase tracking-wider font-inter">
                 Royalty Receiver Address
@@ -297,7 +270,7 @@ export function CollectionForm() {
 
           <GuardButton
             type="submit"
-            disabled={isDeploying || !hasSupportedTokens}
+            disabled={isDeploying}
             actionName="to deploy your collection"
             className="w-full flex items-center justify-center gap-3 rounded-2xl bg-brand-500 py-5 text-xl font-bold text-white shadow-2xl shadow-brand-500/30 hover:bg-brand-600 hover:scale-[1.01] transition-all active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
           >
