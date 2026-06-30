@@ -65,9 +65,11 @@ pub fn get_user_stakes(env: &Env, user: &Address) -> Vec<DataKey> {
         .get::<_, Vec<DataKey>>(&key)
         .unwrap_or_else(|| Vec::new(env));
 
-    env.storage()
-        .persistent()
-        .extend_ttl(&key, LEDGER_TTL_THRESHOLD, LEDGER_TTL_BUMP);
+    if env.storage().persistent().has(&key) {
+        env.storage()
+            .persistent()
+            .extend_ttl(&key, LEDGER_TTL_THRESHOLD, LEDGER_TTL_BUMP);
+    }
 
     stakes
 }
