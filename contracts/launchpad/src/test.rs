@@ -1006,6 +1006,7 @@ fn get_creator_collections_returns_only_caller_collections() {
     let other = Address::generate(&env);
     let royalty_receiver = Address::generate(&env);
     let currency = Address::generate(&env);
+    approve_currency(&client, &currency);
 
     client.deploy_normal_721(
         &creator,
@@ -1045,6 +1046,7 @@ fn get_all_collections_returns_all_deployed() {
     let alice = Address::generate(&env);
     let royalty_receiver = Address::generate(&env);
     let currency = Address::generate(&env);
+    approve_currency(&client, &currency);
 
     client.deploy_normal_721(
         &creator,
@@ -1080,6 +1082,7 @@ fn get_collection_count_increments_per_deploy() {
     let royalty_receiver = Address::generate(&env);
     let currency = Address::generate(&env);
     let creator_pubkey = BytesN::from_array(&env, &[0x05u8; 32]);
+    approve_currency(&client, &currency);
 
     assert_eq!(client.collection_count(), 0u64);
 
@@ -1116,6 +1119,7 @@ fn deploy_events_include_kind_in_payload() {
 
     let royalty_receiver = Address::generate(&env);
     let currency = Address::generate(&env);
+    approve_currency(&client, &currency);
 
     // Deploy one of each type and confirm no panic (events are emitted).
     // The soroban test SDK exposes env.events().all() to inspect events.
@@ -1183,6 +1187,7 @@ fn deploys_staking_pool_for_nft_collection() {
     let nft_address = Address::generate(&env);
     let reward_token = Address::generate(&env);
     let salt = BytesN::from_array(&env, &[0xAAu8; 32]);
+    approve_currency(&client, &reward_token);
 
     let pool_a = client.deploy_staking_pool(
         &creator,
