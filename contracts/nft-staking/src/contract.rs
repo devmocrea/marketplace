@@ -129,7 +129,7 @@ impl NftStaking {
                 &env,
                 user.clone().into_val(&env),
                 env.current_contract_address().into_val(&env),
-                (token_id as u64).into_val(&env),
+                token_id.into_val(&env),
             ],
         );
 
@@ -184,7 +184,7 @@ impl NftStaking {
                 &env,
                 user.clone().into_val(&env),
                 env.current_contract_address().into_val(&env),
-                (token_id as u64).into_val(&env),
+                token_id.into_val(&env),
                 (amount as i128).into_val(&env),
                 soroban_sdk::Bytes::new(&env).into_val(&env),
             ],
@@ -259,7 +259,7 @@ impl NftStaking {
                 &env,
                 env.current_contract_address().into_val(&env),
                 user.clone().into_val(&env),
-                (token_id as u64).into_val(&env),
+                token_id.into_val(&env),
             ],
         );
 
@@ -310,7 +310,7 @@ impl NftStaking {
                 &env,
                 env.current_contract_address().into_val(&env),
                 user.clone().into_val(&env),
-                (token_id as u64).into_val(&env),
+                token_id.into_val(&env),
                 (amount as i128).into_val(&env),
                 soroban_sdk::Bytes::new(&env).into_val(&env),
             ],

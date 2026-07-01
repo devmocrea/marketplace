@@ -59,4 +59,6 @@ pub enum DataKey {
     StakingPoolByNft(Address),
     /// WASM hash for RoyaltySplitter clone deployments
     WasmRoyaltySplitter,
+    /// Tracks which token addresses are approved as payment currencies
+    ApprovedCurrency(Address),
 }
