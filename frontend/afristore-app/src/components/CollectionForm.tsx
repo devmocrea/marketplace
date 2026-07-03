@@ -115,25 +115,6 @@ export function CollectionForm() {
     }
   };
 
-    // If it's a lazy collection, we need the pubkey bytes
-    if (form.kind.startsWith("LazyMint")) {
-      try {
-        // Dynamically import StrKey to avoid Node deps in initial bundle
-        const sdk = await import("@stellar/stellar-sdk");
-        const decoded = sdk.StrKey.decodeEd25519PublicKey(publicKey);
-        input.creatorPubkeyBytes = Buffer.from(decoded);
-      } catch (err) {
-        console.error("Failed to decode public key", err);
-        return;
-      }
-    }
-
-    const addr = await deploy(input);
-    if (addr) {
-      setSuccessAddress(addr);
-    }
-  };
-
   if (successAddress) {
     return (
       <div className="max-w-xl mx-auto flex flex-col items-center gap-6 rounded-3xl border border-green-100 bg-white p-12 text-center shadow-2xl shadow-green-900/5">

@@ -64,9 +64,7 @@ pub fn set_platform_fee_token(env: &Env, token: &Address) {
 }
 
 pub fn get_platform_fee_token(env: &Env) -> Option<Address> {
-    env.storage()
-        .instance()
-        .get(&DataKey::PlatformFeeToken)
+    env.storage().instance().get(&DataKey::PlatformFeeToken)
 }
 
 pub fn set_wasm_hashes(

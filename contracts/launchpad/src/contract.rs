@@ -203,8 +203,8 @@ impl Launchpad {
         // [FEE] Collect deployment fee using admin-set token (#442)
         let (receiver, fee) = storage::get_platform_fee(&env);
         if fee > 0 {
-            let fee_token = storage::get_platform_fee_token(&env)
-                .ok_or(Error::PlatformFeeTokenNotSet)?;
+            let fee_token =
+                storage::get_platform_fee_token(&env).ok_or(Error::PlatformFeeTokenNotSet)?;
             soroban_sdk::token::TokenClient::new(&env, &fee_token).transfer(
                 &creator,
                 &receiver,
