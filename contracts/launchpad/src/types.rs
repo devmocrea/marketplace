@@ -10,7 +10,7 @@ pub enum Error {
     WasmHashNotSet = 4,
     StakingPoolAlreadyExists = 5,
     PlatformFeeTokenNotSet = 6,
-    InvalidCurrency = 6,
+    InvalidCurrency = 7,
 }
 
 /// Which of the four collection types was deployed.

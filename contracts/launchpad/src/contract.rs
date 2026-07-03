@@ -256,7 +256,6 @@ impl Launchpad {
     ) -> Result<Address, Error> {
         storage::extend_instance_ttl(&env);
         creator.require_auth();
-        storage::require_approved_currency(&env, &currency)?;
 
         // [FEE] Collect deployment fee (#442) — use globally-set fee token
         let (receiver, fee) = storage::get_platform_fee(&env);
@@ -315,7 +314,6 @@ impl Launchpad {
     ) -> Result<Address, Error> {
         storage::extend_instance_ttl(&env);
         creator.require_auth();
-        storage::require_approved_currency(&env, &currency)?;
 
         // [FEE] Collect deployment fee (#442) — use globally-set fee token
         let (receiver, fee) = storage::get_platform_fee(&env);
@@ -371,7 +369,6 @@ impl Launchpad {
     ) -> Result<Address, Error> {
         storage::extend_instance_ttl(&env);
         creator.require_auth();
-        storage::require_approved_currency(&env, &currency)?;
 
         // [FEE] Collect deployment fee (#442) — use globally-set fee token
         let (receiver, fee) = storage::get_platform_fee(&env);
@@ -481,7 +478,6 @@ impl Launchpad {
     ) -> Result<Address, Error> {
         storage::extend_instance_ttl(&env);
         creator.require_auth();
-        storage::require_approved_currency(&env, &currency)?;
 
         // [FEE] Collect deployment fee (#442) — use globally-set fee token
         let (receiver, fee) = storage::get_platform_fee(&env);
