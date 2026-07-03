@@ -190,7 +190,6 @@ impl Launchpad {
     pub fn deploy_normal_721(
         env: Env,
         creator: Address,
-        currency: Address,
         name: String,
         symbol: String,
         max_supply: u64,
@@ -200,7 +199,6 @@ impl Launchpad {
     ) -> Result<Address, Error> {
         storage::extend_instance_ttl(&env);
         creator.require_auth();
-        storage::require_approved_currency(&env, &currency)?;
 
         // [FEE] Collect deployment fee using admin-set token (#442)
         let (receiver, fee) = storage::get_platform_fee(&env);
